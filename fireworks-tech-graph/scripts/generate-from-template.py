@@ -496,8 +496,7 @@ def render_canvas(style_index: int, style: Dict[str, object], width: float, heig
         parts = [f'  <rect width="{width}" height="{height}" fill="url(#terminalGradient)"/>']
     else:
         parts = [f'  <rect width="{width}" height="{height}" fill="{background}"/>']
-    if style_index == 3:
-        parts.append(f'  <rect width="{width}" height="{height}" fill="url(#blueprintGrid)"/>')
+
     return "\n".join(parts)
 
 
