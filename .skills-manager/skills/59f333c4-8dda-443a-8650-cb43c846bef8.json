@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "59f333c4-8dda-443a-8650-cb43c846bef8",
+  "path": "blueprinter",
+  "path_key": "blueprinter",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/yofine/skills/tree/main/blueprinter",
+    "subpath": "blueprinter",
+    "branch": "main"
+  }
+}

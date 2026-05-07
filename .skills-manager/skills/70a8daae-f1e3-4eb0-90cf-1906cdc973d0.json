@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "70a8daae-f1e3-4eb0-90cf-1906cdc973d0",
+  "path": "code-review",
+  "path_key": "code-review",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "anthropics/knowledge-work-plugins/code-review",
+    "subpath": "engineering/skills/code-review",
+    "branch": null
+  }
+}

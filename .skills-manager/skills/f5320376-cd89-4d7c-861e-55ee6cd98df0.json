@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "f5320376-cd89-4d7c-861e-55ee6cd98df0",
+  "path": "chrome-devtools",
+  "path_key": "chrome-devtools",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "chromedevtools/chrome-devtools-mcp/chrome-devtools",
+    "subpath": "skills/chrome-devtools",
+    "branch": null
+  }
+}

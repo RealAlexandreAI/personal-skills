@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "8af9f730-ea67-4dc4-9947-4e23c9626179",
+  "path": "pnpm",
+  "path_key": "pnpm",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "antfu/skills/pnpm",
+    "subpath": "skills/pnpm",
+    "branch": null
+  }
+}

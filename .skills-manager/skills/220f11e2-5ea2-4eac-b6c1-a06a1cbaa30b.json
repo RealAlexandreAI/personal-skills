@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "220f11e2-5ea2-4eac-b6c1-a06a1cbaa30b",
+  "path": "gsap",
+  "path_key": "gsap",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "heygen-com/hyperframes/gsap",
+    "subpath": "skills/gsap",
+    "branch": null
+  }
+}

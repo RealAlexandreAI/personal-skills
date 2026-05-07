@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "be89c994-bad6-46e6-a62c-297cbb23c4d7",
+  "path": "smux",
+  "path_key": "smux",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/ShawnPana/smux",
+    "subpath": "skills/smux",
+    "branch": null
+  }
+}

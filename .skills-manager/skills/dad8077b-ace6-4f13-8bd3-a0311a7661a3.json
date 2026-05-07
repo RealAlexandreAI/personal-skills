@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "dad8077b-ace6-4f13-8bd3-a0311a7661a3",
+  "path": "hyperframes-cli",
+  "path_key": "hyperframes-cli",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "heygen-com/hyperframes/hyperframes-cli",
+    "subpath": "skills/hyperframes-cli",
+    "branch": null
+  }
+}

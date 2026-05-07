@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "aef0078d-00c9-4d4b-aa16-de14166fe285",
+  "path": "dev-browser",
+  "path_key": "dev-browser",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "sawyerhood/dev-browser/dev-browser",
+    "subpath": "skills/dev-browser",
+    "branch": null
+  }
+}

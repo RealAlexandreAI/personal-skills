@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "689f0ede-26fc-40b8-bfd7-177da927d116",
+  "path": "excalidraw-diagram-generator",
+  "path_key": "excalidraw-diagram-generator",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "github/awesome-copilot/excalidraw-diagram-generator",
+    "subpath": "skills/excalidraw-diagram-generator",
+    "branch": null
+  }
+}

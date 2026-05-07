@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6012e54c-2a8c-4dc6-ad4f-866fc9b798aa",
+  "path": "electron",
+  "path_key": "electron",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "vercel-labs/agent-browser/electron",
+    "subpath": "skill-data/electron",
+    "branch": null
+  }
+}

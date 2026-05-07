@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ff51b3bb-cc0f-4ac6-9f41-5e8429564e10",
+  "path": "architecture",
+  "path_key": "architecture",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "anthropics/knowledge-work-plugins/architecture",
+    "subpath": "engineering/skills/architecture",
+    "branch": null
+  }
+}

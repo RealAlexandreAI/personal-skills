@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "8e26db19-0e93-4e44-a3f2-67accedb20dd",
+  "path": "opencli-rs",
+  "path_key": "opencli-rs",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/nashsu/opencli-rs-skill",
+    "subpath": null,
+    "branch": null
+  }
+}

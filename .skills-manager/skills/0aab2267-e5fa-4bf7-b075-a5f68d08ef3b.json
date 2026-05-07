@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "0aab2267-e5fa-4bf7-b075-a5f68d08ef3b",
+  "path": "editorconfig",
+  "path_key": "editorconfig",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "github/awesome-copilot/editorconfig",
+    "subpath": "skills/editorconfig",
+    "branch": null
+  }
+}

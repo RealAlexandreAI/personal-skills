@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "fe163c73-7617-45e2-8aa2-4a1bbf1d9452",
+  "path": "shadcn-ui",
+  "path_key": "shadcn-ui",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "google-labs-code/stitch-skills/shadcn-ui",
+    "subpath": "skills/shadcn-ui",
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "cd46eea5-bc9e-4049-b88f-5ff5d98fa493",
+  "path": "architecture-diagram",
+  "path_key": "architecture-diagram",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/Cocoon-AI/architecture-diagram-generator/tree/main/architecture-diagram",
+    "subpath": "architecture-diagram",
+    "branch": "main"
+  }
+}
