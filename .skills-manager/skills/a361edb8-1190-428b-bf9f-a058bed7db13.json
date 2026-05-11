@@ -8,7 +8,7 @@
   "source": {
     "type": "skillssh",
     "ref": "juliusbrussee/caveman/caveman",
-    "subpath": "caveman",
+    "subpath": "skills/caveman",
     "branch": null
   }
 }
