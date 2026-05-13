@@ -8,7 +8,7 @@
   "source": {
     "type": "git",
     "ref": "https://github.com/mattpocock/skills/tree/main/skills/in-progress/handoff",
-    "subpath": "skills/in-progress/handoff",
+    "subpath": "skills",
     "branch": "main"
   }
 }
