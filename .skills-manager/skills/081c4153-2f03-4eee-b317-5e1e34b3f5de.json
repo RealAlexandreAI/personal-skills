@@ -8,7 +8,7 @@
   "source": {
     "type": "skillssh",
     "ref": "github/awesome-copilot/gh-cli",
-    "subpath": "skills/gh-cli",
+    "subpath": "skills",
     "branch": null
   }
 }
