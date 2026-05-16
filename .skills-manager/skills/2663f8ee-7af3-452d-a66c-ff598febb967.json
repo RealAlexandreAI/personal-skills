@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "2663f8ee-7af3-452d-a66c-ff598febb967",
+  "path": "native-feel-cross-platform-desktop",
+  "path_key": "native-feel-cross-platform-desktop",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/yetone/native-feel-skill",
+    "subpath": null,
+    "branch": null
+  }
+}
