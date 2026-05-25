@@ -1481,14 +1481,19 @@ def build_svg(template_type: str, data: Dict[str, object]) -> str:
     arrows_data = data.get("arrows", [])
     legend = data.get("legend", [])
 
-    normalized_nodes = [normalize_node(node, f"node-{idx}") for idx, node in enumerate(nodes_data)]
-    node_map = {node.node_id: node for node in normalized_nodes}
-
     defs = render_defs(style_index, style)
     canvas = render_canvas(style_index, style, width, height)
     title_block, content_start_y = render_title_block(style, data, width)
     window_controls = render_window_controls(data, style_index, width)
     header_meta = render_header_meta(data, style, width)
+
+    # Assign auto_place y before building node maps so arrows route correctly
+    for node_data in nodes_data:
+        if "y" not in node_data and node_data.get("auto_place"):
+            node_data["y"] = content_start_y + to_float(node_data.get("offset_y", 0))
+
+    normalized_nodes = [normalize_node(node, f"node-{idx}") for idx, node in enumerate(nodes_data)]
+    node_map = {node.node_id: node for node in normalized_nodes}
 
     lines = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {int(width)} {int(height)}" width="{int(width)}" height="{int(height)}">']
     lines.append(defs)
@@ -1531,8 +1536,6 @@ def build_svg(template_type: str, data: Dict[str, object]) -> str:
     lines.extend(path for path in arrow_paths if path)
 
     for node_data in nodes_data:
-        if "y" not in node_data and node_data.get("auto_place"):
-            node_data["y"] = content_start_y + to_float(node_data.get("offset_y", 0))
         lines.append(render_node(node_data, style))
 
     lines.extend(label for label in arrow_labels if label)
