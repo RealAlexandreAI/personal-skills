@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "263dd7b7-5191-4fba-b348-9ddeaea3113a",
+  "path": "caveman-commit",
+  "path_key": "caveman-commit",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/juliusbrussee/caveman.git",
+    "subpath": "skills/caveman-commit",
+    "branch": null
+  }
+}

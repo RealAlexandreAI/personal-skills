@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6420ce53-c650-42c2-9016-1ff6e46f7e47",
+  "path": "pretty-mermaid",
+  "path_key": "pretty-mermaid",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/imxv/pretty-mermaid-skills.git",
+    "subpath": null,
+    "branch": null
+  }
+}

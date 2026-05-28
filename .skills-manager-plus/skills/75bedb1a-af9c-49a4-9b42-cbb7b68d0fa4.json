@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "75bedb1a-af9c-49a4-9b42-cbb7b68d0fa4",
+  "path": "apple-appstore-reviewer",
+  "path_key": "apple-appstore-reviewer",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/github/awesome-copilot.git",
+    "subpath": "skills/apple-appstore-reviewer",
+    "branch": null
+  }
+}

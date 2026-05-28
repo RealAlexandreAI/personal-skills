@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "85fd01f7-d6e9-4b51-b21c-ba842c36b51f",
+  "path": "ccc",
+  "path_key": "ccc",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/cocoindex-io/cocoindex-code.git",
+    "subpath": "skills/ccc",
+    "branch": null
+  }
+}

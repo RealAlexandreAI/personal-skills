@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "052a1d60-93ad-494e-b36c-417eca31e51a",
+  "path": "acquire-codebase-knowledge",
+  "path_key": "acquire-codebase-knowledge",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/github/awesome-copilot.git",
+    "subpath": "skills/acquire-codebase-knowledge",
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "008ddead-0514-4ed9-987d-1d529bfd2811",
+  "path": "dev-browser",
+  "path_key": "dev-browser",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/sawyerhood/dev-browser.git",
+    "subpath": "skills/dev-browser",
+    "branch": null
+  }
+}
