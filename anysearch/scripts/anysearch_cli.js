@@ -115,6 +115,41 @@ function parseJsonList(value) {
   }
 }
 
+function parseSubDomainParams(value) {
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch (_) {
+    // {key:value,key2:value2} format (PowerShell strips inner quotes from JSON)
+    if (value.startsWith("{") && value.endsWith("}")) {
+      const inner = value.slice(1, -1).trim();
+      if (inner) {
+        const result = {};
+        const pairs = inner.split(",");
+        for (const pair of pairs) {
+          const idx = pair.indexOf(":");
+          if (idx === -1) continue;
+          const key = pair.substring(0, idx).trim().replace(/^['"]|['"]$/g, "");
+          const val = pair.substring(idx + 1).trim().replace(/^['"]|['"]$/g, "");
+          if (key) result[key] = val;
+        }
+        if (Object.keys(result).length > 0) return result;
+      }
+    }
+    // key=value,key2=value2 format
+    const result = {};
+    const pairs = value.split(",");
+    for (const pair of pairs) {
+      const idx = pair.indexOf("=");
+      if (idx === -1) continue;
+      const key = pair.substring(0, idx).trim();
+      const val = pair.substring(idx + 1).trim();
+      if (key) result[key] = val;
+    }
+    return Object.keys(result).length > 0 ? result : undefined;
+  }
+}
+
 async function cmdSearch(opts) {
   const args = { query: opts.query };
 
@@ -122,12 +157,12 @@ async function cmdSearch(opts) {
     args.domain = opts.domain;
     if (opts.subDomain) args.sub_domain = opts.subDomain;
     if (opts.subDomainParams) {
-      try {
-        args.sub_domain_params = JSON.parse(opts.subDomainParams);
-      } catch (_) {
-        console.error("Error: --sub_domain_params must be valid JSON");
+      const parsed = parseSubDomainParams(opts.subDomainParams);
+      if (!parsed) {
+        console.error("Error: --sub_domain_params must be valid JSON or key=value pairs");
         process.exit(1);
       }
+      args.sub_domain_params = parsed;
     }
   }
 
@@ -264,6 +299,21 @@ async function cmdBatchSearch(opts) {
     process.exit(1);
   }
 
+  // Inject shared params into each query item (item's own fields take precedence)
+  const sharedDomain = opts.domain;
+  const sharedSubDomain = opts.subDomain;
+  const sharedSdp = opts.subDomainParams ? parseSubDomainParams(opts.subDomainParams) : undefined;
+
+  for (const item of queries) {
+    if (sharedDomain && !item.domain) item.domain = sharedDomain;
+    if (sharedSubDomain && !item.sub_domain) item.sub_domain = sharedSubDomain;
+    if (sharedSdp && !item.sub_domain_params) item.sub_domain_params = sharedSdp;
+    // Parse string sub_domain_params inside query items (KV or {key:value} format)
+    if (typeof item.sub_domain_params === "string") {
+      item.sub_domain_params = parseSubDomainParams(item.sub_domain_params);
+    }
+  }
+
   const result = await callApi("batch_search", { queries }, opts.apiKey);
   console.log(result);
 }
@@ -321,7 +371,7 @@ function parseArgs(argv) {
         switch (flag) {
           case "--domain": case "-d": opts.domain = shiftVal(); break;
           case "--sub_domain": case "-s": opts.subDomain = shiftVal(); break;
-          case "--sub_domain_params": opts.subDomainParams = shiftVal(); break;
+          case "--sub_domain_params": case "--sdp": case "-p": opts.subDomainParams = shiftVal(); break;
           case "--max_results": case "-m": opts.maxResults = parseInt(shiftVal(), 10); break;
           case "--api_key": opts.apiKey = shiftVal(); break;
           default: console.error(`Unknown flag: ${flag}`); usage(); process.exit(1);
@@ -366,12 +416,18 @@ function parseArgs(argv) {
     case "batch_search": {
       opts.queryItems = [];
       opts.queries = undefined;
+      opts.domain = undefined;
+      opts.subDomain = undefined;
+      opts.subDomainParams = undefined;
       let positional = undefined;
       while (rest.length > 0) {
         const flag = rest.shift();
         switch (flag) {
           case "--queries": case "-q": opts.queries = shiftVal(); break;
           case "--query": opts.queryItems.push(shiftVal()); break;
+          case "--domain": case "-d": opts.domain = shiftVal(); break;
+          case "--sub_domain": case "-s": opts.subDomain = shiftVal(); break;
+          case "--sub_domain_params": case "--sdp": case "-p": opts.subDomainParams = shiftVal(); break;
           case "--api_key": opts.apiKey = shiftVal(); break;
           default:
             if (!positional) positional = flag;

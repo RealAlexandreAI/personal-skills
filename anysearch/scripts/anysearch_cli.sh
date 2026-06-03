@@ -30,6 +30,61 @@ _load_env
 
 API_KEY="${ANYSEARCH_API_KEY:-}"
 
+_parse_sub_domain_params() {
+  local value="$1"
+  if [[ -z "$value" ]]; then
+    echo ""
+    return
+  fi
+  # Try JSON parse first
+  if printf '%s' "$value" | jq empty 2>/dev/null; then
+    printf '%s' "$value"
+    return
+  fi
+  # {key:value,key2:value2} format (PowerShell strips inner quotes from JSON)
+  if [[ "$value" == \{* && "$value" == *\} ]]; then
+    local inner="${value#\{}"
+    inner="${inner%\}}"
+    inner="$(echo "$inner" | xargs 2>/dev/null || echo "$inner")"
+    if [[ -n "$inner" ]]; then
+      local result="{}"
+      IFS=',' read -ra pairs <<< "$inner"
+      for pair in "${pairs[@]}"; do
+        if [[ "$pair" == *:* ]]; then
+          local key="${pair%%:*}"
+          local val="${pair#*:}"
+          key="$(echo "$key" | xargs 2>/dev/null || echo "$key")"
+          val="$(echo "$val" | xargs 2>/dev/null || echo "$val")"
+          key="${key//\"/}"
+          key="${key//\'/}"
+          val="${val//\"/}"
+          val="${val//\'/}"
+          if [[ -n "$key" ]]; then
+            result=$(printf '%s' "$result" | jq --arg k "$key" --arg v "$val" '. + {($k):$v}')
+          fi
+        fi
+      done
+      if [[ "$result" != "{}" ]]; then
+        printf '%s' "$result"
+        return
+      fi
+    fi
+  fi
+  # key=value,key2=value2 format
+  local result="{}"
+  IFS=',' read -ra pairs <<< "$value"
+  for pair in "${pairs[@]}"; do
+    local key="${pair%%=*}"
+    local val="${pair#*=}"
+    key="$(echo "$key" | xargs 2>/dev/null || echo "$key")"
+    val="$(echo "$val" | xargs 2>/dev/null || echo "$val")"
+    if [[ -n "$key" ]]; then
+      result=$(printf '%s' "$result" | jq --arg k "$key" --arg v "$val" '. + {($k):$v}')
+    fi
+  done
+  printf '%s' "$result"
+}
+
 # BEGIN GENERATED:CONSTANTS
 AVAILABLE_DOMAINS=("general" "resource" "social_media" "finance" "academic" "legal" "health" "business" "security" "ip" "code" "energy" "environment" "agriculture" "travel" "film" "gaming")
 # END GENERATED:CONSTANTS
@@ -85,7 +140,7 @@ _cmd_search() {
     case "$1" in
       --domain|-d)     domain="$2"; shift 2 ;;
       --sub_domain|-s) sub_domain="$2"; shift 2 ;;
-      --sub_domain_params) sub_domain_params="$2"; shift 2 ;;
+      --sub_domain_params|--sdp|-p) sub_domain_params="$2"; shift 2 ;;
       --max_results|-m) max_results="$2"; shift 2 ;;
       --api_key)       API_KEY="$2"; shift 2 ;;
       -*)              echo "Unknown flag: $1" >&2; _usage; exit 1 ;;
@@ -107,7 +162,11 @@ _cmd_search() {
       args=$(printf '%s' "$args" | jq --arg s "$sub_domain" '. + {"sub_domain":$s}')
     fi
     if [[ -n "$sub_domain_params" ]]; then
-      args=$(printf '%s' "$args" | jq --argjson p "$sub_domain_params" '. + {"sub_domain_params":$p}')
+      local parsed_sdp
+      parsed_sdp=$(_parse_sub_domain_params "$sub_domain_params")
+      if [[ -n "$parsed_sdp" && "$parsed_sdp" != "{}" ]]; then
+        args=$(printf '%s' "$args" | jq --argjson p "$parsed_sdp" '. + {"sub_domain_params":$p}')
+      fi
     fi
   fi
 
@@ -179,11 +238,17 @@ _cmd_extract() {
 _cmd_batch_search() {
   local queries=""
   local query_items=()
+  local shared_domain=""
+  local shared_sub_domain=""
+  local shared_sdp=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --queries|-q)    queries="$2"; shift 2 ;;
       --query)         query_items+=("$2"); shift 2 ;;
+      --domain|-d)     shared_domain="$2"; shift 2 ;;
+      --sub_domain|-s) shared_sub_domain="$2"; shift 2 ;;
+      --sub_domain_params|--sdp|-p) shared_sdp="$2"; shift 2 ;;
       --api_key)       API_KEY="$2"; shift 2 ;;
       -*)              echo "Unknown flag: $1" >&2; exit 1 ;;
       *)               queries="$1"; shift ;;
@@ -212,10 +277,33 @@ _cmd_batch_search() {
       raw=$(cat "$fpath")
     fi
     if [[ "$raw" == \[* || "$raw" == \{* ]]; then
-      if [[ "$raw" == \[* ]]; then
-        args=$(jq -n --argjson q "$raw" '{"queries":$q}')
+      local json_input="$raw"
+      [[ "$raw" == \{* ]] && json_input="[$raw]"
+      if printf '%s' "$json_input" | jq empty 2>/dev/null; then
+        args=$(jq -n --argjson q "$json_input" '{"queries":$q}')
       else
-        args=$(jq -n --argjson q "[$raw]" '{"queries":$q}')
+        # Repair mangled JSON (e.g. PowerShell strips inner quotes: {query:AAPL} )
+        # Use jq to parse the repaired structure
+        args=$(printf '%s' "$json_input" | jq -R '
+          # Simple repair: split top-level array items by "},{" then parse each
+          gsub("^\\[|\\]$";"") |
+          split("},{") |
+          map(gsub("^\\{|\\}$";"")) |
+          map(
+            split(",") |
+            map(
+              (index(":") // index("=")) as $idx |
+              if $idx then
+                { (.[0:$idx] | gsub("^\\s+|\\s+$|[\"'"'"']";"")): (.[$idx+1:] | gsub("^\\s+|\\s+$|[\"'"'"']";"")) }
+              else empty end
+            ) | add // {}
+          )
+        ' 2>/dev/null) || true
+        if [[ -z "$args" || "$args" == "null" ]]; then
+          echo "Error: failed to parse queries JSON" >&2
+          exit 1
+        fi
+        args=$(jq -n --argjson q "$args" '{"queries":$q}')
       fi
     else
       local items_json
@@ -237,6 +325,38 @@ _cmd_batch_search() {
     echo "Error: batch_search supports a maximum of 5 queries" >&2
     exit 1
   fi
+
+  # Inject shared params into each query item (item's own fields take precedence)
+  local parsed_shared_sdp=""
+  if [[ -n "$shared_sdp" ]]; then
+    parsed_shared_sdp=$(_parse_sub_domain_params "$shared_sdp")
+  fi
+
+  if [[ -n "$shared_domain" || -n "$shared_sub_domain" || -n "$parsed_shared_sdp" ]]; then
+    args=$(printf '%s' "$args" | jq \
+      --arg sd "$shared_domain" \
+      --arg ss "$shared_sub_domain" \
+      --argjson sp "${parsed_shared_sdp:-null}" \
+      '.queries = [.queries[] | 
+        (if ($sd != "" and (.domain == null or .domain == "")) then .domain = $sd else . end) |
+        (if ($ss != "" and (.sub_domain == null or .sub_domain == "")) then .sub_domain = $ss else . end) |
+        (if ($sp != null and (.sub_domain_params == null)) then .sub_domain_params = $sp else . end)
+      ]')
+  fi
+
+  # Parse string sub_domain_params inside query items to objects
+  args=$(printf '%s' "$args" | jq '
+    .queries = [.queries[] |
+      if (.sub_domain_params | type) == "string" then
+        if (.sub_domain_params | startswith("{")) then
+          # {key:value} format (PowerShell-mangled JSON)
+          .sub_domain_params = (.sub_domain_params | ltrimstr("{") | rtrimstr("}") | split(",") | map(split(":") | {(.[0] | gsub("^\\s+|\\s+$|[\"'"'"']";"")): (.[1:] | join(":") | gsub("^\\s+|\\s+$|[\"'"'"']";""))}) | add // {})
+        else
+          # key=value format
+          .sub_domain_params = (.sub_domain_params | split(",") | map(split("=") | {(.[0] | gsub("^\\s+|\\s+$";"")): (.[1:] | join("=") | gsub("^\\s+|\\s+$";""))}) | add // {})
+        end
+      else . end
+    ]')
 
   _call_api "batch_search" "$args"
 }

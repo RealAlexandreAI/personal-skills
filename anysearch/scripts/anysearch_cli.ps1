@@ -118,6 +118,43 @@ function Parse-JsonList {
     }
 }
 
+function Parse-SubDomainParams {
+    param([string]$Value)
+    if (-not $Value) { return $null }
+    try {
+        return ($Value | ConvertFrom-Json -AsHashtable)
+    } catch {
+        # {key:value,key2:value2} format (PowerShell strips inner quotes from JSON)
+        if ($Value.StartsWith('{') -and $Value.EndsWith('}')) {
+            $inner = $Value.Substring(1, $Value.Length - 2).Trim()
+            if ($inner) {
+                $result = @{}
+                $pairs = $inner -split ','
+                foreach ($pair in $pairs) {
+                    $colonIdx = $pair.IndexOf(':')
+                    if ($colonIdx -lt 1) { continue }
+                    $key = $pair.Substring(0, $colonIdx).Trim().Trim('"').Trim("'")
+                    $val = $pair.Substring($colonIdx + 1).Trim().Trim('"').Trim("'")
+                    if ($key) { $result[$key] = $val }
+                }
+                if ($result.Count -gt 0) { return $result }
+            }
+        }
+        # key=value,key2=value2 format
+        $result = @{}
+        $pairs = $Value -split ','
+        foreach ($pair in $pairs) {
+            $eqIdx = $pair.IndexOf('=')
+            if ($eqIdx -lt 1) { continue }
+            $key = $pair.Substring(0, $eqIdx).Trim()
+            $val = $pair.Substring($eqIdx + 1).Trim()
+            if ($key) { $result[$key] = $val }
+        }
+        if ($result.Count -gt 0) { return $result }
+        return $null
+    }
+}
+
 function Invoke-Search {
     param([hashtable]$Opts)
 
@@ -127,12 +164,12 @@ function Invoke-Search {
         $arguments["domain"] = $Opts.Domain
         if ($Opts.SubDomain) { $arguments["sub_domain"] = $Opts.SubDomain }
         if ($Opts.SubDomainParams) {
-            try {
-                $arguments["sub_domain_params"] = $Opts.SubDomainParams | ConvertFrom-Json -AsHashtable
-            } catch {
-                Write-Error "Error: --sub_domain_params must be valid JSON"
+            $parsed = Parse-SubDomainParams $Opts.SubDomainParams
+            if (-not $parsed) {
+                Write-Error "Error: --sub_domain_params must be valid JSON or key=value pairs"
                 exit 1
             }
+            $arguments["sub_domain_params"] = $parsed
         }
     }
 
@@ -313,7 +350,31 @@ function Invoke-BatchSearch {
         exit 1
     }
 
-    $arguments = @{ queries = @($queries) }
+    # Inject shared params into each query item (item's own fields take precedence)
+    $sharedDomain = $Opts.SharedDomain
+    $sharedSubDomain = $Opts.SharedSubDomain
+    $sharedSdp = if ($Opts.SharedSdp) { Parse-SubDomainParams $Opts.SharedSdp } else { $null }
+
+    $finalQueries = @()
+    foreach ($item in $queries) {
+        if ($item -is [hashtable]) {
+            $q = $item
+        } else {
+            # ConvertFrom-Json returns PSObjects; convert to hashtable
+            $q = @{}
+            $item.PSObject.Properties | ForEach-Object { $q[$_.Name] = $_.Value }
+        }
+        if ($sharedDomain -and -not $q["domain"]) { $q["domain"] = $sharedDomain }
+        if ($sharedSubDomain -and -not $q["sub_domain"]) { $q["sub_domain"] = $sharedSubDomain }
+        if ($sharedSdp -and -not $q["sub_domain_params"]) { $q["sub_domain_params"] = $sharedSdp }
+        # Parse KV string sub_domain_params inside query items
+        if ($q["sub_domain_params"] -is [string]) {
+            $q["sub_domain_params"] = Parse-SubDomainParams $q["sub_domain_params"]
+        }
+        $finalQueries += $q
+    }
+
+    $arguments = @{ queries = @($finalQueries) }
     $result = Call-Api -ToolName "batch_search" -Arguments $arguments -ApiKey $Opts.ApiKey
     Write-Output $result
 }
@@ -383,6 +444,8 @@ switch ($command) {
                 "--sub_domain" { $subDomain = $rest[$i+1]; $i += 2 }
                 "-s"       { $subDomain = $rest[$i+1]; $i += 2 }
                 "--sub_domain_params" { $subDomainParams = $rest[$i+1]; $i += 2 }
+                "--sdp"    { $subDomainParams = $rest[$i+1]; $i += 2 }
+                "-p"       { $subDomainParams = $rest[$i+1]; $i += 2 }
                 "--max_results" { $maxResults = [int]$rest[$i+1]; $i += 2 }
                 "-m"       { $maxResults = [int]$rest[$i+1]; $i += 2 }
                 "--api_key" { $apiKey = $rest[$i+1]; $i += 2 }
@@ -454,6 +517,9 @@ switch ($command) {
         $queryItems = [System.Collections.Generic.List[string]]::new()
         $queries = $null
         $positional = $null
+        $batchDomain = ""
+        $batchSubDomain = ""
+        $batchSdp = ""
         $i = 0
 
         while ($i -lt $rest.Count) {
@@ -461,6 +527,13 @@ switch ($command) {
                 "--queries" { $queries = $rest[$i+1]; $i += 2 }
                 "-q"        { $queries = $rest[$i+1]; $i += 2 }
                 "--query"   { $queryItems.Add($rest[$i+1]); $i += 2 }
+                "--domain"  { $batchDomain = $rest[$i+1]; $i += 2 }
+                "-d"        { $batchDomain = $rest[$i+1]; $i += 2 }
+                "--sub_domain" { $batchSubDomain = $rest[$i+1]; $i += 2 }
+                "-s"        { $batchSubDomain = $rest[$i+1]; $i += 2 }
+                "--sub_domain_params" { $batchSdp = $rest[$i+1]; $i += 2 }
+                "--sdp"     { $batchSdp = $rest[$i+1]; $i += 2 }
+                "-p"        { $batchSdp = $rest[$i+1]; $i += 2 }
                 "--api_key" { $apiKey = $rest[$i+1]; $i += 2 }
                 default     {
                     if (-not $positional) { $positional = $rest[$i] }
@@ -473,9 +546,12 @@ switch ($command) {
         if ($positional -and -not $queries) { $queries = $positional }
 
         Invoke-BatchSearch @{
-            Queries    = $queries
-            QueryItems = $queryItems
-            ApiKey     = $apiKey
+            Queries        = $queries
+            QueryItems     = $queryItems
+            SharedDomain   = $batchDomain
+            SharedSubDomain = $batchSubDomain
+            SharedSdp      = $batchSdp
+            ApiKey         = $apiKey
         }
     }
 
