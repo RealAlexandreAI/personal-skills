@@ -11,17 +11,10 @@ const ENDPOINT = "https://api.anysearch.com/mcp";
 
 // BEGIN GENERATED:CONSTANTS
 const AVAILABLE_DOMAINS = [
-  "code","travel","home","ecommerce","gaming","film",
-  "music","finance","academic","legal","business","ip",
-  "health","geo","environment","energy",
+  "general","resource","social_media","finance","academic","legal",
+  "health","business","security","ip","code","energy",
+  "environment","agriculture","travel","film","gaming",
 ];
-
-const CONTENT_TYPES = [
-  "web","news","code","doc","academic","data","image","video","audio",
-];
-
-const FRESHNESS_VALUES = ["day","week","month","year"];
-const ZONES = ["cn","intl"];
 // END GENERATED:CONSTANTS
 
 function loadEnv() {
@@ -138,10 +131,7 @@ async function cmdSearch(opts) {
     }
   }
 
-  if (opts.contentTypes) args.content_types = parseJsonList(opts.contentTypes);
-  if (opts.zone) args.zone = opts.zone;
-  if (opts.maxResults !== undefined) args.max_results = opts.maxResults;
-  if (opts.freshness) args.freshness = opts.freshness;
+  if (opts.maxResults !== undefined) args.max_results = Math.min(opts.maxResults, 10);
 
   const result = await callApi("search", args, opts.apiKey);
   console.log(result);
@@ -158,7 +148,7 @@ async function cmdListDomains(opts) {
     process.exit(1);
   }
 
-  const result = await callApi("list_domains", args, opts.apiKey);
+  const result = await callApi("get_sub_domains", args, opts.apiKey);
   console.log(result);
 }
 
@@ -281,18 +271,13 @@ async function cmdBatchSearch(opts) {
 // BEGIN GENERATED:DOC_SPEC
 function renderDoc() {
   const shared = path.join(__dirname, "shared");
-  try {
-    let tpl = fs.readFileSync(path.join(shared, "doc_spec.md"), "utf-8");
-    const c = JSON.parse(fs.readFileSync(path.join(shared, "constants.json"), "utf-8"));
-    tpl = tpl.replace(/\{\{LANG_NAME\}\}/g, "Node.js");
-    tpl = tpl.replace(/\{\{LANG_CODEBLOCK\}\}/g, "");
-    tpl = tpl.replace(/\{\{LANG_INVOKE\}\}/g, "node scripts/anysearch_cli.js");
-    tpl = tpl.replace(/\{\{DOMAINS_SPACE\}\}/g, c.available_domains.join(" "));
-    tpl = tpl.replace(/\{\{CONTENT_TYPES_SPACE\}\}/g, c.content_types.join(" "));
-    return tpl;
-  } catch (e) {
-    return `Error: could not load help template from ${shared}\n  ${e.message}\nUsage: node scripts/anysearch_cli.js <search|list_domains|extract|batch_search|doc>`;
-  }
+  let tpl = fs.readFileSync(path.join(shared, "doc_spec.md"), "utf-8");
+  const c = JSON.parse(fs.readFileSync(path.join(shared, "constants.json"), "utf-8"));
+  tpl = tpl.replace(/\{\{LANG_NAME\}\}/g, "Node.js");
+  tpl = tpl.replace(/\{\{LANG_CODEBLOCK\}\}/g, "");
+  tpl = tpl.replace(/\{\{LANG_INVOKE\}\}/g, "node scripts/anysearch_cli.js");
+  tpl = tpl.replace(/\{\{DOMAINS_SPACE\}\}/g, c.available_domains.join(" "));
+  return tpl;
 }
 // END GENERATED:DOC_SPEC
 
@@ -337,10 +322,7 @@ function parseArgs(argv) {
           case "--domain": case "-d": opts.domain = shiftVal(); break;
           case "--sub_domain": case "-s": opts.subDomain = shiftVal(); break;
           case "--sub_domain_params": opts.subDomainParams = shiftVal(); break;
-          case "--content_types": case "-t": opts.contentTypes = shiftVal(); break;
-          case "--zone": case "-z": opts.zone = shiftVal(); break;
           case "--max_results": case "-m": opts.maxResults = parseInt(shiftVal(), 10); break;
-          case "--freshness": case "-f": opts.freshness = shiftVal(); break;
           case "--api_key": opts.apiKey = shiftVal(); break;
           default: console.error(`Unknown flag: ${flag}`); usage(); process.exit(1);
         }
@@ -352,7 +334,7 @@ function parseArgs(argv) {
       return { action: "search", opts };
     }
 
-    case "list_domains": {
+    case "get_sub_domains": {
       while (rest.length > 0) {
         const flag = rest.shift();
         switch (flag) {

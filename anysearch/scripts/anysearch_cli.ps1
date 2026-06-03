@@ -31,14 +31,10 @@ Load-Env
 
 # BEGIN GENERATED:CONSTANTS
 $AVAILABLE_DOMAINS = @(
-    "code", "travel", "home", "ecommerce", "gaming", "film",
-    "music", "finance", "academic", "legal", "business", "ip",
-    "health", "geo", "environment", "energy"
+    "general", "resource", "social_media", "finance", "academic", "legal",
+    "health", "business", "security", "ip", "code", "energy",
+    "environment", "agriculture", "travel", "film", "gaming"
 )
-
-$CONTENT_TYPES = @("web", "news", "code", "doc", "academic", "data", "image", "video", "audio")
-$FRESHNESS_VALUES = @("day", "week", "month", "year")
-$ZONES = @("cn", "intl")
 # END GENERATED:CONSTANTS
 
 function Call-Api {
@@ -140,12 +136,9 @@ function Invoke-Search {
         }
     }
 
-    if ($Opts.ContentTypes) {
-        $arguments["content_types"] = @(Parse-JsonList $Opts.ContentTypes)
+    if ($Opts.MaxResults -ne $null) {
+        $arguments["max_results"] = [Math]::Min($Opts.MaxResults, 10)
     }
-    if ($Opts.Zone) { $arguments["zone"] = $Opts.Zone }
-    if ($Opts.MaxResults -ne $null) { $arguments["max_results"] = $Opts.MaxResults }
-    if ($Opts.Freshness) { $arguments["freshness"] = $Opts.Freshness }
 
     $result = Call-Api -ToolName "search" -Arguments $arguments -ApiKey $Opts.ApiKey
     Write-Output $result
@@ -165,7 +158,7 @@ function Invoke-ListDomains {
         exit 1
     }
 
-    $result = Call-Api -ToolName "list_domains" -Arguments $arguments -ApiKey $Opts.ApiKey
+    $result = Call-Api -ToolName "get_sub_domains" -Arguments $arguments -ApiKey $Opts.ApiKey
     Write-Output $result
 }
 
@@ -327,19 +320,14 @@ function Invoke-BatchSearch {
 
 # BEGIN GENERATED:DOC_SPEC
 function Render-Doc {
-    $shared = Join-Path $SCRIPT_DIR "shared"
-    try {
-        $tpl = Get-Content (Join-Path $shared "doc_spec.md") -Raw -Encoding UTF8 -ErrorAction Stop
-        $c = Get-Content (Join-Path $shared "constants.json") -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
-        $tpl = $tpl.Replace("{{LANG_NAME}}", "PowerShell")
-        $tpl = $tpl.Replace("{{LANG_CODEBLOCK}}", "powershell")
-        $tpl = $tpl.Replace("{{LANG_INVOKE}}", "powershell -ExecutionPolicy Bypass -File scripts/anysearch_cli.ps1")
-        $tpl = $tpl.Replace("{{DOMAINS_SPACE}}", ($c.available_domains -join " "))
-        $tpl = $tpl.Replace("{{CONTENT_TYPES_SPACE}}", ($c.content_types -join " "))
-        return $tpl
-    } catch {
-        return "Error: could not load help template from $shared`n  $_`nUsage: powershell -ExecutionPolicy Bypass -File scripts/anysearch_cli.ps1 <search|list_domains|extract|batch_search|doc>"
-    }
+    $shared = Join-Path (Split-Path -Parent $MyInvocation.ScriptName) "shared"
+    $tpl = Get-Content (Join-Path $shared "doc_spec.md") -Raw -Encoding UTF8
+    $c = Get-Content (Join-Path $shared "constants.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+    $tpl = $tpl.Replace("{{LANG_NAME}}", "PowerShell")
+    $tpl = $tpl.Replace("{{LANG_CODEBLOCK}}", "powershell")
+    $tpl = $tpl.Replace("{{LANG_INVOKE}}", "powershell -ExecutionPolicy Bypass -File scripts/anysearch_cli.ps1")
+    $tpl = $tpl.Replace("{{DOMAINS_SPACE}}", ($c.available_domains -join " "))
+    return $tpl
 }
 # END GENERATED:DOC_SPEC
 
@@ -377,10 +365,7 @@ switch ($command) {
         $domain = ""
         $subDomain = ""
         $subDomainParams = ""
-        $contentTypes = ""
-        $zone = ""
         $maxResults = $null
-        $freshness = ""
 
         $i = 0
         $positional = @()
@@ -398,14 +383,8 @@ switch ($command) {
                 "--sub_domain" { $subDomain = $rest[$i+1]; $i += 2 }
                 "-s"       { $subDomain = $rest[$i+1]; $i += 2 }
                 "--sub_domain_params" { $subDomainParams = $rest[$i+1]; $i += 2 }
-                "--content_types" { $contentTypes = $rest[$i+1]; $i += 2 }
-                "-t"       { $contentTypes = $rest[$i+1]; $i += 2 }
-                "--zone"   { $zone = $rest[$i+1]; $i += 2 }
-                "-z"       { $zone = $rest[$i+1]; $i += 2 }
                 "--max_results" { $maxResults = [int]$rest[$i+1]; $i += 2 }
                 "-m"       { $maxResults = [int]$rest[$i+1]; $i += 2 }
-                "--freshness" { $freshness = $rest[$i+1]; $i += 2 }
-                "-f"       { $freshness = $rest[$i+1]; $i += 2 }
                 "--api_key" { $apiKey = $rest[$i+1]; $i += 2 }
                 default    { Write-Error "Unknown flag: $($rest[$i])"; exit 1 }
             }
@@ -421,15 +400,12 @@ switch ($command) {
             Domain            = $domain
             SubDomain         = $subDomain
             SubDomainParams   = $subDomainParams
-            ContentTypes      = $contentTypes
-            Zone              = $zone
             MaxResults        = $maxResults
-            Freshness         = $freshness
             ApiKey            = $apiKey
         }
     }
 
-    "list_domains" {
+    "get_sub_domains" {
         $domain = ""
         $domains = ""
 

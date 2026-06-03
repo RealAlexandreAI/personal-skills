@@ -10,6 +10,7 @@
     "codex": true,
     "cursor": true,
     "opencode": true,
-    "pi": true
+    "pi": true,
+    "warp": true
   }
 }

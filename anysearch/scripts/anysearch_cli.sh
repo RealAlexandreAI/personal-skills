@@ -31,10 +31,7 @@ _load_env
 API_KEY="${ANYSEARCH_API_KEY:-}"
 
 # BEGIN GENERATED:CONSTANTS
-AVAILABLE_DOMAINS=("code" "travel" "home" "ecommerce" "gaming" "film" "music" "finance" "academic" "legal" "business" "ip" "health" "geo" "environment" "energy")
-CONTENT_TYPES=("web" "news" "code" "doc" "academic" "data" "image" "video" "audio")
-FRESHNESS_VALUES=("day" "week" "month" "year")
-ZONES=("cn" "intl")
+AVAILABLE_DOMAINS=("general" "resource" "social_media" "finance" "academic" "legal" "health" "business" "security" "ip" "code" "energy" "environment" "agriculture" "travel" "film" "gaming")
 # END GENERATED:CONSTANTS
 
 _call_api() {
@@ -82,20 +79,14 @@ _cmd_search() {
   local domain=""
   local sub_domain=""
   local sub_domain_params=""
-  local content_types=""
-  local zone=""
   local max_results=""
-  local freshness=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --domain|-d)     domain="$2"; shift 2 ;;
       --sub_domain|-s) sub_domain="$2"; shift 2 ;;
       --sub_domain_params) sub_domain_params="$2"; shift 2 ;;
-      --content_types|-t) content_types="$2"; shift 2 ;;
-      --zone|-z)       zone="$2"; shift 2 ;;
       --max_results|-m) max_results="$2"; shift 2 ;;
-      --freshness|-f)  freshness="$2"; shift 2 ;;
       --api_key)       API_KEY="$2"; shift 2 ;;
       -*)              echo "Unknown flag: $1" >&2; _usage; exit 1 ;;
       *)               query="$1"; shift ;;
@@ -120,30 +111,17 @@ _cmd_search() {
     fi
   fi
 
-  if [[ -n "$content_types" ]]; then
-    local ct_json
-    if [[ "$content_types" == \[* ]]; then
-      ct_json="$content_types"
-    else
-      ct_json=$(printf '%s' "$content_types" | jq -R 'split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(length > 0))')
-    fi
-    args=$(printf '%s' "$args" | jq --argjson ct "$ct_json" '. + {"content_types":$ct}')
-  fi
-
-  if [[ -n "$zone" ]]; then
-    args=$(printf '%s' "$args" | jq --arg z "$zone" '. + {"zone":$z}')
-  fi
   if [[ -n "$max_results" ]]; then
+    if [[ "$max_results" -gt 10 ]]; then
+      max_results=10
+    fi
     args=$(printf '%s' "$args" | jq --argjson m "$max_results" '. + {"max_results":$m}')
-  fi
-  if [[ -n "$freshness" ]]; then
-    args=$(printf '%s' "$args" | jq --arg f "$freshness" '. + {"freshness":$f}')
   fi
 
   _call_api "search" "$args"
 }
 
-_cmd_list_domains() {
+_cmd_get_sub_domains() {
   local domain=""
   local domains=""
 
@@ -173,7 +151,7 @@ _cmd_list_domains() {
     exit 1
   fi
 
-  _call_api "list_domains" "$args"
+  _call_api "get_sub_domains" "$args"
 }
 
 _cmd_extract() {
@@ -266,22 +244,14 @@ _cmd_batch_search() {
 # BEGIN GENERATED:DOC_SPEC
 _cmd_doc() {
   local shared="$SCRIPT_DIR/shared"
-  if [[ ! -f "$shared/doc_spec.md" || ! -f "$shared/constants.json" ]]; then
-    echo "Error: could not load help template from $shared" >&2
-    echo "Usage: bash scripts/anysearch_cli.sh <search|list_domains|extract|batch_search|doc>" >&2
-    return 1
-  fi
   local tpl
   tpl=$(cat "$shared/doc_spec.md")
   local domains
   domains=$(jq -r '.available_domains | join(" ")' "$shared/constants.json")
-  local ctypes
-  ctypes=$(jq -r '.content_types | join(" ")' "$shared/constants.json")
   tpl="${tpl//\{\{LANG_NAME\}\}/Bash}"
   tpl="${tpl//\{\{LANG_CODEBLOCK\}\}/bash}"
-  tpl="${tpl//\{\{LANG_INVOKE\}\}/bash scripts/anysearch_cli.sh}"
+  tpl="${tpl//\{\{LANG_INVOKE\}\}\}/bash scripts/anysearch_cli.sh}"
   tpl="${tpl//\{\{DOMAINS_SPACE\}\}/$domains}"
-  tpl="${tpl//\{\{CONTENT_TYPES_SPACE\}\}/$ctypes}"
   printf '%s\n' "$tpl"
 }
 # END GENERATED:DOC_SPEC
@@ -296,7 +266,7 @@ main() {
 
   case "$command" in
     search)         _cmd_search "$@" ;;
-    list_domains)   _cmd_list_domains "$@" ;;
+    get_sub_domains)   _cmd_get_sub_domains "$@" ;;
     extract)        _cmd_extract "$@" ;;
     batch_search)   _cmd_batch_search "$@" ;;
     doc)            _cmd_doc ;;
