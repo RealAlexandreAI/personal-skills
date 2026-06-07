@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "941f8b23-7e26-48fd-86f0-723840ca269a",
+  "path": "geju",
+  "path_key": "geju",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/hylarucoder/hai-stack/tree/main/skills/geju",
+    "subpath": "skills/geju",
+    "branch": "main"
+  }
+}
