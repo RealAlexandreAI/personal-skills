@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "cb93ecf4-4c34-4636-99cf-643ef28d4422",
+  "path": "text-to-lottie",
+  "path_key": "text-to-lottie",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/diffusionstudio/lottie",
+    "subpath": "skills/text-to-lottie",
+    "branch": null
+  }
+}
