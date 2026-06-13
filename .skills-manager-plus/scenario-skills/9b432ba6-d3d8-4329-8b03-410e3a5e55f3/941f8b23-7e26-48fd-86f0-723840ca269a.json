@@ -5,7 +5,6 @@
   "sort_order": 1,
   "tools": {
     "claude_code": true,
-    "claude_internal": true,
     "codebuddy": true,
     "codex": true,
     "cursor": true,
