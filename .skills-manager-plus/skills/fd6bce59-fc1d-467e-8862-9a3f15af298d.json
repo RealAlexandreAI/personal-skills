@@ -8,7 +8,7 @@
   "source": {
     "type": "git",
     "ref": "https://github.com/heygen-com/hyperframes.git",
-    "subpath": "skills/hyperframes",
+    "subpath": "skills",
     "branch": null
   }
 }
