@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "c1ad0584-507b-4985-bc25-c60b4528e53a",
+  "path": "anysearch",
+  "path_key": "anysearch",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/anysearch-ai/anysearch-skill",
+    "subpath": null,
+    "branch": null
+  }
+}

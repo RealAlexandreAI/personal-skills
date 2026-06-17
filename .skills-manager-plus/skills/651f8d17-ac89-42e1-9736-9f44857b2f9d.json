@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "651f8d17-ac89-42e1-9736-9f44857b2f9d",
+  "path": "notion-cli",
+  "path_key": "notion-cli",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/makenotion/skills.git",
+    "subpath": "skills/notion-cli",
+    "branch": null
+  }
+}

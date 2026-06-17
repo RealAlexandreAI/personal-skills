@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "76eae1c7-cd3a-45fc-bed6-fd482df9fe5f",
+  "path": "agent-browser",
+  "path_key": "agent-browser",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vercel-labs/agent-browser.git",
+    "subpath": "skills/agent-browser",
+    "branch": null
+  }
+}
