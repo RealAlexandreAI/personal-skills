@@ -61,6 +61,17 @@ Use these exact command shapes for routine calls. Replace `<cmd>` with the comma
 <cmd> extract --url "https://example.com/page"
 ```
 
+### Social Media Source Workflow
+
+For public social-media research, treat `social_media` as a vertical domain:
+
+```bash
+<cmd> get_sub_domains --domain social_media
+<cmd> search "product launch response on X and Reddit" --domain social_media --sub_domain <returned-sub-domain> --max_results 5
+```
+
+Use AnySearch for public discovery, cross-source context, and page extraction. If the user needs account-scoped X/Twitter evidence such as exact tweets, tweet replies, profile lookup, follower export, media URLs, monitors, webhooks, or approved post/reply workflows, hand off to a dedicated authenticated tool after user approval. In OpenClaw, TweetClaw (`@xquik/tweetclaw`) can provide that follow-up source packet while AnySearch remains the broad web and vertical search layer.
+
 Invalid examples: do not use `extract --format markdown`, `extract --format json`, or `extract --markdown`; the `extract` command has no format option. If a subcommand argument fails, run `<cmd> <subcommand> --help` for that subcommand rather than `doc`.
 
 Run the `doc` command via the platform-selected CLI only when needed (see Platform Detection below):
@@ -70,7 +81,7 @@ Run the `doc` command via the platform-selected CLI only when needed (see Platfo
 | Python | `python <skill_dir>/scripts/anysearch_cli.py doc` or `python3 <skill_dir>/scripts/anysearch_cli.py doc` |
 | Node.js | `node <skill_dir>/scripts/anysearch_cli.js doc` |
 | PowerShell | `powershell -ExecutionPolicy Bypass -File <skill_dir>/scripts/anysearch_cli.ps1 doc` |
-| Bash/sh | `bash <skill_dir>/scripts/anysearch_cli.sh doc` |
+| Bash | `bash <skill_dir>/scripts/anysearch_cli.sh doc` |
 
 **Security & Privacy notes:**
 - The `doc` command is a local-only operation and makes no network requests.
@@ -132,7 +143,7 @@ If `<skill_dir>/runtime.conf` exists, read the `Runtime` and `Command` values fr
 At startup, the agent MUST detect the current platform and select the best available CLI. The priority order is:
 
 ```
-Python  >  Node.js  >  Shell (powershell on Windows, sh/bash on Linux/macOS)
+Python  >  Node.js  >  Shell (powershell on Windows, bash on Linux/macOS)
 ```
 
 ### Detection Procedure
@@ -146,7 +157,7 @@ python3 --version 2>&1
 ```
 - If either `python` or `python3` exists with version >= 3.6 → use `anysearch_cli.py`
 - On many macOS systems, `python` is absent while `python3` is available. Treat both names as valid probes.
-- Dependency: `requests` library (typically pre-installed)
+- Dependency: the `requests` library (not part of the standard library). It is commonly already available; if importing it fails, install with `pip install requests` (or `pip install -r requirements.txt`), or fall through to the Node.js CLI, which has no dependencies.
 
 **Step 2 — Check Node.js** (if Python failed)
 ```
@@ -160,10 +171,12 @@ node --version 2>&1
 | Platform | Shell | CLI |
 |----------|-------|-----|
 | Windows | PowerShell 5.1+ | `anysearch_cli.ps1` |
-| Linux / macOS | sh or bash | `anysearch_cli.sh` |
+| Linux / macOS | bash 3.2+ (with `jq` and `curl`) | `anysearch_cli.sh` |
 
 - Windows: `powershell -Command "$PSVersionTable.PSVersion"` to verify
-- Linux/macOS: `bash --version` or `sh --version` to verify
+- Linux/macOS: `bash --version`, and `jq --version` / `curl --version` (the Bash CLI requires both)
+
+> Note: `anysearch_cli.sh` is a Bash script (it uses `[[ … ]]`, arrays and `BASH_SOURCE`); it is not POSIX `sh`-compatible. Run it with `bash`, not `sh`.
 
 ### CLI Invocation
 
@@ -174,9 +187,9 @@ Once the active CLI is determined, all tool calls use the same subcommand syntax
 | Python | `python <skill_dir>/scripts/anysearch_cli.py <command> [options]` or `python3 <skill_dir>/scripts/anysearch_cli.py <command> [options]` |
 | Node.js | `node <skill_dir>/scripts/anysearch_cli.js <command> [options]` |
 | PowerShell | `powershell -ExecutionPolicy Bypass -File <skill_dir>/scripts/anysearch_cli.ps1 <command> [options]` |
-| Bash/sh | `bash <skill_dir>/scripts/anysearch_cli.sh <command> [options]` |
+| Bash | `bash <skill_dir>/scripts/anysearch_cli.sh <command> [options]` |
 
 ### Fallback & Error Handling
 
 - If the selected CLI fails with a runtime error (missing dependency, version too old, etc.), fall through to the next runtime in priority order.
-- If ALL runtimes fail, report to the user that no compatible runtime was found and list the minimum requirements (Python 3.6+ via `python` or `python3` with `requests`, or Node.js 12+, or PowerShell 5.1+, or bash 4+).
+- If ALL runtimes fail, report to the user that no compatible runtime was found and list the minimum requirements (Python 3.6+ via `python` or `python3` with `requests`, or Node.js 12+, or PowerShell 5.1+, or bash 3.2+ with `jq` and `curl`).

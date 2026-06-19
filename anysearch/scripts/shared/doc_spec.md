@@ -41,8 +41,8 @@ Single failure does not block others; results are merged.
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| --query | string | YES (x1-5) | Repeatable single-query shorthand (CLI-only). Each value becomes `{"query":"..."}` — equivalent to the `queries` array with plain query objects |
-| --queries, -q | JSON | YES | JSON array of query objects, or @file.json to read from file |
+| --query | string | choose one | Repeatable single-query shorthand (CLI-only), 1-5 times. Each value becomes `{"query":"..."}` — equivalent to the `queries` array with plain query objects |
+| --queries, -q | JSON | choose one | JSON array of query objects (1-5), or @file.json to read from file |
 | --domain, -d | string | no | Shared domain injected into all query items (per-item domain overrides) |
 | --sub_domain, -s | string | no | Shared sub_domain injected into all query items (per-item sub_domain overrides) |
 | --sdp, --sub_domain_params, -p | string | no | Shared sub_domain_params (key=value or JSON) injected into all query items |
@@ -215,7 +215,23 @@ From a JSON file:
 {{LANG_INVOKE}} extract --url "https://example.com/news/article-12345"
 ```
 
-### Scenario 8: Search with API key
+### Scenario 8: Social media source discovery
+
+Discover the available social media sub-domains before selecting one:
+
+```bash
+{{LANG_INVOKE}} get_sub_domains --domain social_media
+```
+
+Then search the returned sub-domain:
+
+```bash
+{{LANG_INVOKE}} search "product launch response on X and Reddit" --domain social_media --sub_domain <returned-sub-domain> --max_results 5
+```
+
+Use AnySearch for public social discovery and page extraction. If an OpenClaw user needs account-scoped X/Twitter source packets such as exact tweets, tweet replies, profile lookup, follower export, media URLs, monitors, webhooks, or approved post/reply workflows, use a dedicated authenticated tool after user approval. TweetClaw (`@xquik/tweetclaw`) is one compatible follow-up source while AnySearch remains the broad web and vertical search layer.
+
+### Scenario 9: Search with API key
 
 ```bash
 {{LANG_INVOKE}} search "climate change policy 2025" --api_key <your_api_key> --max_results 3
