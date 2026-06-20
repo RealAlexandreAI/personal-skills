@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "57ca83f8-c9bf-40f0-8ed8-bf786d62dce7",
+  "path": "Surge",
+  "path_key": "surge",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "local",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
