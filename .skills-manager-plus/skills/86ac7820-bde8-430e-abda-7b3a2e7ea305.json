@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "86ac7820-bde8-430e-abda-7b3a2e7ea305",
+  "path": "agently-mail",
+  "path_key": "agently-mail",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "tencent/agentlymail/agently-mail",
+    "subpath": "skills",
+    "branch": null
+  }
+}
