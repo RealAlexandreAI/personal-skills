@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "e890c4bc-90c8-4f06-a36c-a731d4b12082",
+  "path": "slop-taste",
+  "path_key": "slop-taste",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/RealAlexandreAI/public-skills",
+    "subpath": "skills/slop-taste",
+    "branch": null
+  }
+}
