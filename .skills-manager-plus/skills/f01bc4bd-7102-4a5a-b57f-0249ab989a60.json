@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "f01bc4bd-7102-4a5a-b57f-0249ab989a60",
+  "path": "ctx-agent-history-search",
+  "path_key": "ctx-agent-history-search",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/ctxrs/ctx/tree/main/skills/ctx-agent-history-search",
+    "subpath": "skills/ctx-agent-history-search",
+    "branch": "main"
+  }
+}
