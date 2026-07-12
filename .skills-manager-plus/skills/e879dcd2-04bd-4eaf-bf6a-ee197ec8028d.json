@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "e879dcd2-04bd-4eaf-bf6a-ee197ec8028d",
+  "path": "kill-ai-slop",
+  "path_key": "kill-ai-slop",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "yetone/kill-ai-slop/kill-ai-slop",
+    "subpath": "skill",
+    "branch": null
+  }
+}

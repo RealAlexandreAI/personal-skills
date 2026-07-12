@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "3129e161-79d3-42c2-ad47-a9b7c4a50e0c",
+  "path": "apple-design",
+  "path_key": "apple-design",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/emilkowalski/skills/tree/main/skills/apple-design",
+    "subpath": "skills/apple-design",
+    "branch": "main"
+  }
+}
