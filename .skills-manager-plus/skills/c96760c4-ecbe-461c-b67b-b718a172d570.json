@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "c96760c4-ecbe-461c-b67b-b718a172d570",
+  "path": "macos-app-scaffold-new",
+  "path_key": "macos-app-scaffold-new",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/XueshiQiao/macos-app-scaffold",
+    "subpath": "skills/macos-app-scaffold-new",
+    "branch": null
+  }
+}

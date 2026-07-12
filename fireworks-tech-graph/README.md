@@ -5,7 +5,8 @@
 > **Stop drawing diagrams by hand.** Describe your system in English or Chinese — get publication-ready SVG + PNG technical diagrams in seconds.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-blue)](https://claude.ai/code)
+[![Codex Skill](https://img.shields.io/badge/Codex-Skill-10a37f)](https://learn.chatgpt.com/docs/build-skills)
+[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-d97757)](https://code.claude.com/docs/en/skills)
 [![8 Visual Styles](https://img.shields.io/badge/Styles-8-purple)]()
 [![14 Diagram Types](https://img.shields.io/badge/Diagram%20Types-14-green)]()
 [![UML Support](https://img.shields.io/badge/UML-Full%20Support-orange)]()
@@ -14,7 +15,7 @@
 
 ## Overview
 
-`fireworks-tech-graph` turns natural language descriptions into polished SVG diagrams, then exports them as high-resolution PNG via `cairosvg` (recommended), with `rsvg-convert` and `puppeteer` available as alternatives. It ships with **7 template styles** and **1 AI-authored style (Dark Luxury)** and deep knowledge of AI/Agent domain patterns (RAG, Agentic Search, Mem0, Multi-Agent, Tool Call flows), plus full support for all 14 UML diagram types.
+`fireworks-tech-graph` is one Agent Skill that works unchanged in **Codex and Claude Code**. It turns natural language descriptions into polished SVG diagrams, then exports them as high-resolution PNG via `cairosvg` (recommended), with `rsvg-convert` and `puppeteer` available as alternatives. It ships with **7 template styles** and **1 AI-authored style (Dark Luxury)** and deep knowledge of AI/Agent domain patterns (RAG, Agentic Search, Mem0, Multi-Agent, Tool Call flows), plus full support for all 14 UML diagram types.
 
 ```
 User: "Generate a Mem0 memory architecture diagram, dark style"
@@ -40,7 +41,7 @@ If you are building agent infrastructure, AI IDEs, internal copilots, developer 
 
 ## Showcase
 
-> All samples exported at 1920px width (2× retina) via `cairosvg`. PNG is lossless and the right choice for technical diagrams — sharp edges, no JPEG compression artifacts on text/lines.
+> All samples are exported at 1920px width (2× retina) by the regression pipeline. It prefers `cairosvg` and falls back to `rsvg-convert`. PNG keeps technical text and line work lossless.
 
 ### Style 1 — Flat Icon (default)
 *Mem0 Memory Architecture — white background, semantic arrows, layered memory system*
@@ -71,7 +72,7 @@ If you are building agent infrastructure, AI IDEs, internal copilots, developer 
 ![Style 7 — OpenAI Official](assets/samples/sample-style7-openai.png)
 
 ### Style 8 — Dark Luxury *(AI-authored)*
-*Sopify Adaptive Workflow Engine — deep black background, champagne gold accents, serif titles, six-bucket color wheel*
+*Agent Runtime Architecture — control plane, execution and state layers, champagne-gold structure, semantic color buckets*
 ![Style 8 — Dark Luxury](assets/samples/sample-style8-dark-luxury.png)
 
 ---
@@ -138,7 +139,9 @@ Keep the look minimal, white, precise, and modern with clean green-accented arro
 > Style 8 is not a template-driven style. The AI reads `references/style-8-dark-luxury.md` and hand-crafts the SVG directly.
 
 ```text
-Draw a system architecture diagram in style 8 (Dark Luxury).
+Draw an Agent Runtime Architecture diagram in style 8 (Dark Luxury).
+Use two sections: Control Plane and Execution and State.
+Include Client, Gateway, Agent Runtime, Vector Memory, Tool Runtime, and Trace + Eval.
 Use a deep black background (#0a0a0a), champagne gold (#d4a574) for titles and cluster labels,
 and spread node colors across the full color wheel: emerald, violet, sky blue, rose, amber, cool-gray.
 Apply Georgia serif only for the main title and section labels (≥11px); use sans-serif for all node text and arrow labels.
@@ -154,6 +157,8 @@ Apply Georgia serif only for the main title and section labels (≥11px); use sa
 - **AI/Agent domain patterns** — RAG, Agentic Search, Mem0, Multi-Agent, Tool Call, and more built-in
 - **Semantic shape vocabulary** — LLM = double-border rect, Agent = hexagon, Vector Store = ringed cylinder
 - **Semantic arrow system** — color + dash pattern encode meaning (write vs read vs async vs loop)
+- **Structured SVG validation** — XML parsing, `marker-start/mid/end` integrity, and arrow-component collision checks for `M/L/H/V/Q/C/S/T` paths
+- **Visual review gate** — exported PNGs are inspected for clipping, overlap, label placement, and routing regressions before delivery
 - **Product icons** — 40+ products with brand colors: OpenAI, Anthropic, Pinecone, Weaviate, Kafka, PostgreSQL…
 - **Swim lane grouping** — automatic layer labeling for complex architectures
 - **SVG + PNG output** — SVG for editing, 1920px PNG for embedding
@@ -161,68 +166,130 @@ Apply Georgia serif only for the main title and section labels (≥11px); use sa
 
 ---
 
+## Loop Engineering
+
+The first render is treated as a candidate, not an automatic final result. `fireworks-tech-graph` uses an agent-driven, bounded validation feedback loop to move each diagram toward a verified deliverable:
+
+```text
+Prompt
+  → Diagram Contract
+  → Semantic IR
+  → Style Spec
+  → Route Planner
+  → SVG Build
+  → Structural Validation
+  → PNG Visual Readback
+  → Targeted Revision
+  → Verified SVG + PNG
+```
+
+The loop follows five design principles:
+
+1. **Evaluate, don't assert** — completion is backed by validator and render evidence, not by the model saying the diagram looks correct.
+2. **Deterministic checks first** — XML structure, marker integrity, path geometry, arrow-component collisions, and renderability are checked before visual judgment.
+3. **Perceptual validation second** — the exported PNG is read back to inspect clipping, label collisions, hierarchy, whitespace, and routing quality that syntax checks cannot see.
+4. **Targeted correction** — each pass changes only the diagnosed labels, coordinates, corridors, or spacing, then reruns validation and rendering.
+5. **Bounded convergence** — visual review allows at most two focused correction passes by default, preventing an unbounded self-editing loop.
+
+The loop is observable in the final status:
+
+```text
+validation: passed
+visual_review: passed
+```
+
+If the runtime cannot read images, the skill reports `visual_review: skipped (image reader unavailable)` explicitly. The workflow remains bounded and auditable; it does not claim visual verification without image evidence.
+
+---
+
 ## Installation
 
 > [!WARNING]
-> `npx skills add` (v1.5.15) only copies `SKILL.md` — subdirectories like `references/`, `scripts/`, `templates/` are silently dropped. **Use `git clone` for a complete installation.**
+> Some versions of `npx skills add` only copy `SKILL.md` and omit bundled directories such as `references/`, `scripts/`, and `templates/`. **Use `git clone` for a complete installation.**
+
+The commands below are for a fresh install. If the destination already exists but is not a Git checkout, move it aside first, then run the matching clone command:
 
 ```bash
+mv ~/.agents/skills/fireworks-tech-graph ~/.agents/skills/fireworks-tech-graph.backup-$(date +%Y%m%d-%H%M%S)
+# or
+mv ~/.claude/skills/fireworks-tech-graph ~/.claude/skills/fireworks-tech-graph.backup-$(date +%Y%m%d-%H%M%S)
+```
+
+### Codex
+
+```bash
+mkdir -p ~/.agents/skills
+git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.agents/skills/fireworks-tech-graph
+```
+
+Codex discovers personal skills from `~/.agents/skills` and reads the optional `agents/openai.yaml` metadata included in this repository.
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
 git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.claude/skills/fireworks-tech-graph
 ```
 
-Or use `npx skills add` (subdirectories may be missing):
+Claude Code discovers personal skills from `~/.claude/skills` and ignores the Codex-only UI metadata.
+
+### Codex + Claude Code on the same machine
+
+For a fresh install with Claude Code 2.1.203 or newer, keep one checkout and link both discovery paths to it. Move any existing destinations aside before creating the links.
 
 ```bash
-npx skills add yizhiyanhua-ai/fireworks-tech-graph
+mkdir -p ~/.local/share/agent-skills ~/.agents/skills ~/.claude/skills
+git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.local/share/agent-skills/fireworks-tech-graph
+ln -s ~/.local/share/agent-skills/fireworks-tech-graph ~/.agents/skills/fireworks-tech-graph
+ln -s ~/.local/share/agent-skills/fireworks-tech-graph ~/.claude/skills/fireworks-tech-graph
 ```
 
-This skill is installed from the GitHub repository. The npm package page is the public package/distribution page:
+This keeps `SKILL.md`, references, scripts, templates, and future updates identical in both agents. The npm package page remains available for package metadata and distribution:
 
 ```text
 https://www.npmjs.com/package/@yizhiyanhua-ai/fireworks-tech-graph
 ```
 
-Do not use the npm package name with `skills add`, because the CLI resolves install sources as GitHub/local paths.
-
 ## Update
 
-```bash
-cd ~/.claude/skills/fireworks-tech-graph && git pull
-```
-
-Or re-run the CLI installer:
+Update whichever checkout you installed:
 
 ```bash
-npx skills add yizhiyanhua-ai/fireworks-tech-graph --force -g -y
+git -C ~/.agents/skills/fireworks-tech-graph pull
+# or
+git -C ~/.claude/skills/fireworks-tech-graph pull
+# or, for the shared checkout
+git -C ~/.local/share/agent-skills/fireworks-tech-graph pull
 ```
+
+After the first install, restart Codex and Claude Code so both discover the skill. Later `SKILL.md` edits are detected automatically; restart the runtime after changing bundled scripts or references if the update is not visible.
+
+The shell commands above target macOS, Linux, WSL, and Git Bash. On native Windows, use the equivalent `%USERPROFILE%\.agents\skills` and `%USERPROFILE%\.claude\skills` paths.
 
 ---
 
 ## Requirements
 
-Pick **one** PNG renderer (cairosvg recommended):
+The bundled validation/export scripts require **cairosvg** (recommended) or `rsvg-convert`. Puppeteer is an advanced manual conversion path documented in `SKILL.md`, not a fallback used by the bundled shell scripts.
 
 ```bash
 # Recommended: cairosvg (best CSS support)
-pip install cairosvg
+python3 -m pip install cairosvg
 
 # Fallback: rsvg-convert (system package; may drop CSS / <foreignObject>)
 brew install librsvg                   # macOS
 sudo apt install librsvg2-bin          # Ubuntu/Debian
 
-# Highest fidelity: puppeteer (real Chromium; heavy)
-npm install puppeteer
-
-# Verify (any one is enough)
+# Verify either supported script renderer
 python3 -c "import cairosvg; print(cairosvg.__version__)"
 rsvg-convert --version
 ```
 
 | Renderer | Quality | Install Cost | Use When |
 |----------|---------|--------------|----------|
-| **cairosvg** | ✅ Good | Single `pip install` | Default — best balance |
+| **cairosvg** | ✅ Good | Single `python3 -m pip install` | Default — best balance |
 | rsvg-convert | ⚠️ Fair | System package | No Python available, simple flat diagrams |
-| puppeteer | ✅✅ Best | Node + ~150MB Chromium | Browser-generated SVG (D3, Mermaid) or pixel-perfect required |
+| puppeteer | ✅✅ Best | Node + Chromium | Manual browser-rendering path for D3, Mermaid, or pixel-perfect output |
 
 ---
 
@@ -232,7 +299,7 @@ rsvg-convert --version
 |--|---------|---------|--------------------------|
 | Natural language input | ✗ | ✗ | ✅ |
 | AI/Agent domain patterns | ✗ | ✗ | ✅ |
-| Multiple visual styles | ✗ | manual | ✅ 5 built-in |
+| Multiple visual styles | ✗ | manual | ✅ 8 built-in |
 | High-res PNG export | ✗ | manual | ✅ auto 1920px |
 | Semantic arrow colors | ✗ | manual | ✅ auto |
 | No online tool needed | ✅ | ✗ | ✅ |
@@ -379,9 +446,10 @@ Draw an AI Agent capability map: Perception / Memory / Reasoning / Action / Lear
 | 5 | **Glassmorphism** | `#0d1117` gradient | Inter | Product sites, keynotes |
 | 6 | **Claude Official** | `#f8f6f3` | system-ui | Anthropic-style diagrams, warm aesthetic |
 | 7 | **OpenAI Official** | `#ffffff` | system-ui | OpenAI-style diagrams, clean modern look |
+| 8 | **Dark Luxury** *(AI-authored)* | `#0a0a0a` | Georgia + system-ui | Premium docs, README heroes, conference slides |
 
-Each style has a dedicated reference file in `references/` with exact color tokens, SVG patterns, and templates.
-The generator also consumes style-aware structure fields such as `containers`, semantic `nodes[].kind`, `arrows[].flow`, and explicit port anchors so sample-grade layouts can be reproduced more consistently.
+Each style has a dedicated reference file in `references/` with exact color tokens and SVG patterns. Styles 1-7 are generator-backed; Style 8 uses AI-authored composition plus a static regression fixture.
+For Styles 1-7, the generator consumes structure fields such as `containers`, semantic `nodes[].kind`, `arrows[].flow`, and explicit port anchors so sample-grade layouts can be reproduced consistently.
 
 Useful high-leverage fields for style-specific polish:
 - `style_overrides` to nudge title alignment or palette tokens without forking a full style
@@ -412,6 +480,7 @@ Useful high-leverage fields for style-specific polish:
 **Brand-Specific:**
 - **Anthropic/Claude projects**: Style 6 (Claude Official) — warm cream background, brand colors
 - **OpenAI projects**: Style 7 (OpenAI Official) — clean white, OpenAI palette
+- **Premium editorial diagrams**: Style 8 (Dark Luxury) — deep black canvas, champagne-gold hierarchy, semantic color buckets
 
 ---
 
@@ -515,19 +584,26 @@ fireworks-tech-graph/
 │   ├── style-4-notion-clean.md   # Minimal, white, single arrow color
 │   ├── style-5-glassmorphism.md  # Dark gradient, frosted glass cards
 │   ├── style-6-claude-official.md # Warm cream background, Anthropic brand
-│   ├── style-7-openai.md      # Clean white, OpenAI brand palette
+│   ├── style-7-openai.md         # Clean white, OpenAI brand palette
+│   ├── style-8-dark-luxury.md    # Deep black, champagne gold, AI-authored layout
+│   ├── png-export.md             # Renderer selection and manual export paths
 │   └── icons.md                  # 40+ product icons + semantic shapes
 ├── agents/
-│   └── openai.yaml              # Agent metadata for compatible runtimes
+│   └── openai.yaml              # Optional Codex UI metadata
 ├── fixtures/
 │   ├── mem0-style1.json         # Style 1 regression fixture
 │   ├── tool-call-style2.json    # Style 2 regression fixture
+│   ├── dark-luxury-style8.svg   # Static Style 8 regression fixture
 │   └── ...                      # Additional sample-grade fixtures per style
 ├── scripts/
 │   ├── generate-diagram.sh       # Validate SVG + export PNG
 │   ├── generate-from-template.py # Create starter SVGs from templates
-│   ├── validate-svg.sh           # Validate SVG syntax
+│   ├── svg2png.js                 # High-fidelity Puppeteer exporter
+│   ├── validate-svg.sh           # Validation and render-check entrypoint
+│   ├── validate_svg.py           # XML, marker, transform, and path collision checks
 │   └── test-all-styles.sh        # Batch test all styles
+├── tests/
+│   └── test_validate_svg.py      # Validator regression tests
 ├── assets/
 │   └── samples/                  # Showcase diagram PNGs
 ├── templates/
@@ -562,12 +638,12 @@ fireworks-tech-graph/
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | PNG is blank or all-black | `@import url()` in SVG — neither cairosvg nor rsvg-convert can fetch external fonts | Remove `@import`, use system font stack |
-| PNG not generated | No renderer installed | `pip install cairosvg` (recommended), or `brew install librsvg` / `apt install librsvg2-bin` |
-| Borders or text missing in PNG | Using `rsvg-convert` on SVG with CSS / `<foreignObject>` | Switch to `cairosvg` (`pip install cairosvg`) — much better CSS support |
+| PNG not generated | No renderer installed | `python3 -m pip install cairosvg` (recommended), or `brew install librsvg` / `apt install librsvg2-bin` |
+| Borders or text missing in PNG | Using `rsvg-convert` on SVG with CSS / `<foreignObject>` | Switch to `cairosvg` (`python3 -m pip install cairosvg`) — much better CSS support |
 | Diagram cut off at bottom | ViewBox height too short | Increase `height` in `viewBox="0 0 960 <height>"` |
 | Text overflowing boxes | Labels too long | Add `text-anchor="middle"` + `<clipPath>` or shorten label |
 | Icons not rendering | External CDN URL | Use inline SVG paths from `references/icons.md` |
-| Browser-generated SVG renders incorrectly | cairosvg / rsvg can't replay all CSS/JS-injected styles | Use the puppeteer script in `SKILL.md` for 100% fidelity |
+| Browser-generated SVG renders incorrectly | cairosvg / rsvg can't replay all CSS/JS-injected styles | Use `scripts/svg2png.js` as described in `references/png-export.md` |
 
 ---
 

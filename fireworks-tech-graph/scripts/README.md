@@ -14,11 +14,9 @@ SVG 验证脚本，检查 SVG 语法并报告详细错误。
 ```
 
 **检查项目：**
-- 标签平衡（开标签 vs 闭标签）
-- 属性引号完整性
-- 特殊字符转义
-- Marker 引用完整性
-- 闭合标签 `</svg>`
+- XML 结构、属性语法和实体转义（使用 XML parser，避免把 `top_k=5` 之类的文本误判为属性）
+- `marker-start` / `marker-mid` / `marker-end` 引用完整性
+- 箭头与组件碰撞（支持绝对/相对 `M/L/H/V/Q/C/S/T` 路径，曲线路径采样检测）
 - 渲染验证（cairosvg 优先，rsvg-convert 兜底）
 
 **示例：**
@@ -37,7 +35,7 @@ SVG 图表生成脚本，提供自动验证和 PNG 导出。
 
 **选项：**
 - `-t, --type TYPE` - 图表类型（见脚本帮助）
-- `-s, --style STYLE` - 风格编号（1-7，默认：1）
+- `-s, --style STYLE` - 风格编号（1-8，默认：1）
 - `-o, --output PATH` - 输出路径（默认：当前目录）
 - `-w, --width WIDTH` - PNG 宽度（像素，默认：1920）
 - `--no-validate` - 跳过验证
@@ -59,7 +57,7 @@ SVG 图表生成脚本，提供自动验证和 PNG 导出。
 基于风格配置和 JSON 数据生成 SVG。当前版本不再只是简单塞入 `nodes/arrows`，
 而是会执行 style guide 中的部分可计算规则，例如：
 
-- `style` - 风格编号（1-7）
+- `style` - 风格编号（1-8）
 - `containers` - 泳道 / 分组容器
 - `containers[].header_prefix` / `containers[].header_text` - 工程编号式分区标题
 - `containers[].side_label` - 左侧 layer label
@@ -96,7 +94,7 @@ python3 ./generate-from-template.py memory ./output/mem0.svg '{
 
 ### 4. test-all-styles.sh
 
-批量测试脚本，测试 7 种风格的回归样例图。
+批量测试脚本，覆盖 8 种风格。Style 1-7 从 JSON fixture 生成，AI 手绘的 Style 8 使用静态 SVG fixture。
 
 **用法：**
 ```bash
@@ -126,7 +124,7 @@ python3 ./generate-from-template.py memory ./output/mem0.svg '{
 
 - **cairosvg**（推荐）- SVG 转 PNG，CSS 支持最好
   ```bash
-  pip install cairosvg
+  python3 -m pip install cairosvg
   ```
 
 - **rsvg-convert**（备选）- 系统包；复杂 SVG 可能丢失 CSS / `<foreignObject>`
@@ -135,7 +133,7 @@ python3 ./generate-from-template.py memory ./output/mem0.svg '{
   sudo apt install librsvg2-bin       # Ubuntu/Debian
   ```
 
-`generate-diagram.sh` 会优先调用 cairosvg，缺失时自动回退到 rsvg-convert。完整对比见 [SKILL.md → SVG → PNG Conversion](../SKILL.md)。
+`generate-diagram.sh` 会优先调用 cairosvg，缺失时自动回退到 rsvg-convert。完整对比见 [PNG 导出参考](../references/png-export.md)。
 
 - **grep, sed, awk** - 文本处理（macOS 自带）
 
@@ -166,23 +164,27 @@ fireworks-tech-graph/
 ### 场景 1：验证现有 SVG
 
 ```bash
-cd ~/.claude/skills/fireworks-tech-graph/scripts
-./validate-svg.sh /path/to/your-diagram.svg
+SKILL_ROOT=~/.agents/skills/fireworks-tech-graph # Codex
+# SKILL_ROOT=~/.claude/skills/fireworks-tech-graph # Claude Code
+"$SKILL_ROOT/scripts/validate-svg.sh" /path/to/your-diagram.svg
 ```
 
 ### 场景 2：生成并验证图表
 
-1. 使用 Claude Code 生成 SVG 内容
+1. 使用 Codex 或 Claude Code 生成 SVG 内容
 2. 运行验证和导出：
    ```bash
-   ./generate-diagram.sh -t architecture -s 1 -o ./output/arch.svg
+   SKILL_ROOT=~/.agents/skills/fireworks-tech-graph # Codex
+   # SKILL_ROOT=~/.claude/skills/fireworks-tech-graph # Claude Code
+   "$SKILL_ROOT/scripts/generate-diagram.sh" -t architecture -s 1 -o ./output/arch.svg
    ```
 
 ### 场景 3：批量测试所有风格
 
 ```bash
-cd ~/.claude/skills/fireworks-tech-graph/scripts
-./test-all-styles.sh
+SKILL_ROOT=~/.agents/skills/fireworks-tech-graph # Codex
+# SKILL_ROOT=~/.claude/skills/fireworks-tech-graph # Claude Code
+"$SKILL_ROOT/scripts/test-all-styles.sh"
 ```
 
 测试脚本会自动：
@@ -190,6 +192,16 @@ cd ~/.claude/skills/fireworks-tech-graph/scripts
 2. 按 `template_type + style` 调用 `generate-from-template.py`
 3. 运行 `validate-svg.sh`
 4. 导出 PNG 到 `../test-output/`
+
+### 场景 4：validator 单元测试
+
+```bash
+python3 -m unittest discover -s tests -p 'test_validate_svg.py' -v
+```
+
+覆盖 marker 双端引用、文本等号、`H/V` 路径、曲线路径、虚线组件和容器排除等正反例。
+
+对启发式难以区分的形状，可显式添加 `data-graph-role="node|container|legend|decoration|label|background"`。`node` 会强制纳入障碍物检测，其余角色会从组件障碍物中排除；`legend` 组内的示例箭头也不会被当作业务流。
 
 查看测试输出：
 ```bash
@@ -202,7 +214,7 @@ ls -lh ../test-output/
 
 **解决方案（任选其一，推荐 cairosvg）：**
 ```bash
-pip install cairosvg                   # 推荐
+python3 -m pip install cairosvg        # 推荐
 brew install librsvg                   # macOS 系统包
 sudo apt install librsvg2-bin          # Ubuntu/Debian
 ```
@@ -213,9 +225,9 @@ sudo apt install librsvg2-bin          # Ubuntu/Debian
 
 **解决方案：** 切换到 cairosvg：
 ```bash
-pip install cairosvg
+python3 -m pip install cairosvg
 ```
-脚本会自动优先使用 cairosvg。如果仍需要像素级还原（例如浏览器生成的 SVG），改用 puppeteer（见 SKILL.md）。
+脚本会自动优先使用 cairosvg。如果仍需要像素级还原（例如浏览器生成的 SVG），按 [PNG 导出参考](../references/png-export.md) 使用 `svg2png.js`。
 
 ### 问题：权限被拒绝
 

@@ -5,14 +5,15 @@
 > 不用手画图了。用中文描述你的系统，几秒钟得到可直接发布的 SVG + PNG 技术图。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-blue)](https://claude.ai/code)
+[![Codex Skill](https://img.shields.io/badge/Codex-Skill-10a37f)](https://learn.chatgpt.com/docs/build-skills)
+[![Claude Code Skill](https://img.shields.io/badge/Claude%20Code-Skill-d97757)](https://code.claude.com/docs/zh-CN/skills)
 [![8 种视觉风格](https://img.shields.io/badge/风格-8种-purple)]()
 [![14 种图类型](https://img.shields.io/badge/图类型-14种-green)]()
 [![UML 支持](https://img.shields.io/badge/UML-完整支持-orange)]()
 
 ## 概述
 
-`fireworks-tech-graph` 将自然语言描述转化为精美的 SVG 技术图，并通过 `cairosvg`（推荐）导出高分辨率 PNG，同时支持 `rsvg-convert` 与 `puppeteer` 作为备选方案。内置 **7 种模板风格** + **1 种 AI 手绘风格（Dark Luxury）**，深度覆盖 AI/Agent 领域常见图类型（RAG、Agentic Search、Mem0、Multi-Agent、Tool Call 流程等），并完整支持全部 14 种 UML 图类型。
+`fireworks-tech-graph` 是一份可由 **Codex 和 Claude Code 共用**的 Agent Skill。它将自然语言描述转化为精美的 SVG 技术图，并通过 `cairosvg`（推荐）导出高分辨率 PNG，同时支持 `rsvg-convert` 与 `puppeteer` 作为备选方案。内置 **7 种模板风格** + **1 种 AI 手绘风格（Dark Luxury）**，深度覆盖 AI/Agent 领域常见图类型（RAG、Agentic Search、Mem0、Multi-Agent、Tool Call 流程等），并完整支持全部 14 种 UML 图类型。
 
 ```
 用户: "画一张 Mem0 的架构图，暗黑风格"
@@ -26,7 +27,7 @@
 
 ## 效果展示
 
-> 所有示例图均以 1920px 宽度（2× 视网膜分辨率）通过 `cairosvg` 导出为 **PNG 格式**。技术图应选 PNG（无损），JPG 有损压缩会在文字和线条边缘产生噪点。
+> 所有示例图均由回归流水线以 1920px 宽度（2× 视网膜分辨率）导出。流水线优先使用 `cairosvg`，不可用时回退到 `rsvg-convert`；PNG 能无损保留技术图中的文字和线条。
 
 ### 风格 1 — 扁平图标风（默认）
 *Mem0 记忆架构图 — 白底，语义箭头，分层记忆系统*
@@ -57,14 +58,14 @@
 ![风格 7 — OpenAI 官方风格](assets/samples/sample-style7-openai.png)
 
 ### 风格 8 — 暗黑奢华风 *(AI 手绘)*
-*Sopify 自适应工作流引擎 — 深黑背景，香槟金点缀，衬线体标题，六色桶色轮*
+*Agent Runtime Architecture — 控制平面、执行与状态分层，香槟金结构线和语义色桶*
 ![风格 8 — 暗黑奢华风](assets/samples/sample-style8-dark-luxury.png)
 
 ---
 
 ## 稳定输出提示词样例
 
-下面这 7 组提示词都更贴近当前仓库里回归测试最稳定的输出方式：
+下面这 8 组提示词都更贴近当前仓库里回归测试最稳定的输出方式：
 
 ### 风格 1 — 扁平图标风
 ```text
@@ -124,7 +125,9 @@
 > 风格 8 不是模板驱动风格。AI 读取 `references/style-8-dark-luxury.md` 手工绘制 SVG。
 
 ```text
-画一张 style 8（Dark Luxury）的系统架构图。
+画一张 style 8（Dark Luxury）的 Agent Runtime Architecture 图。
+分成 Control Plane、Execution and State 两个区域。
+包含 Client、Gateway、Agent Runtime、Vector Memory、Tool Runtime、Trace + Eval。
 背景使用深黑色（#0a0a0a），标题和区块标签用香槟金（#d4a574），
 节点颜色分布在完整色轮上：翠绿、深紫、天空蓝、玫瑰红、琥珀黄、冷灰。
 标题和区块标签（≥11px）使用 Georgia 衬线体；节点文字和箭头标签全用无衬线体。
@@ -140,6 +143,8 @@
 - **AI/Agent 领域内建知识** — RAG、Agentic Search、Mem0、Multi-Agent、Tool Call 等常见 Pattern 开箱即用
 - **语义形状词汇表** — LLM = 双边框圆角矩形，Agent = 六边形，Vector Store = 带内环圆柱
 - **语义箭头系统** — 颜色 + 虚线样式编码含义（写入/读取/异步/循环）
+- **结构化 SVG 校验** — XML 解析、`marker-start/mid/end` 完整性，以及 `M/L/H/V/Q/C/S/T` 路径的箭头穿框检测
+- **视觉复核门禁** — 交付前回读 PNG，检查裁切、重叠、标签位置和走线回归
 - **产品图标库** — 40+ 产品品牌色：OpenAI、Anthropic、Pinecone、Weaviate、Kafka、PostgreSQL……
 - **泳道分组** — 自动为复杂架构添加层级标签
 - **SVG + PNG 双输出** — SVG 可编辑，1920px PNG 可直接嵌入文章
@@ -147,70 +152,132 @@
 
 ---
 
+## Loop Engineering 设计理念
+
+首轮渲染会被视为候选结果，交付前还要经过一条由 Agent 驱动、轮次受限的 validation feedback loop：
+
+```text
+Prompt
+  → Diagram Contract
+  → Semantic IR
+  → Style Spec
+  → Route Planner
+  → SVG Build
+  → Structural Validation
+  → PNG Visual Readback
+  → Targeted Revision
+  → Verified SVG + PNG
+```
+
+这条闭环遵循五项原则：
+
+1. **Evaluate, don't assert** — 完成状态必须有 validator 和实际渲染证据，不能只依赖模型对结果的主观判断。
+2. **先确定性校验** — 依次检查 XML 结构、marker 引用、路径几何、箭头穿框和渲染可用性，再进入视觉判断。
+3. **再做感知验证** — 回读导出的 PNG，检查语法工具无法识别的裁切、标签碰撞、视觉层级、留白和走线质量。
+4. **定向修正** — 每轮只修改已诊断的标签、坐标、corridor 或间距，随后重新运行 validator 和 render check。
+5. **有界收敛** — 默认最多执行两轮 focused correction，避免进入无上限的自我修改循环。
+
+最终状态会明确报告闭环结果：
+
+```text
+validation: passed
+visual_review: passed
+```
+
+当运行环境无法读取图片时，Skill 会明确报告 `visual_review: skipped (image reader unavailable)`。整个流程保持可观察、可审计，也不会在缺少图片证据时宣称已经完成视觉验证。
+
+---
+
 ## 安装
 
 > [!WARNING]
-> `npx skills add`（v1.5.15）只会复制 `SKILL.md` 单文件 — `references/`、`scripts/`、`templates/` 等子目录会被静默丢弃。**请使用 `git clone` 获得完整安装。**
+> 部分版本的 `npx skills add` 只会复制 `SKILL.md`，会漏掉 `references/`、`scripts/`、`templates/` 等目录。**请使用 `git clone` 获得完整安装。**
+
+下面的命令适用于首次安装。如果目标路径已经存在但不是 Git 仓库，先把旧目录移开，再执行对应的 clone 命令：
 
 ```bash
+mv ~/.agents/skills/fireworks-tech-graph ~/.agents/skills/fireworks-tech-graph.backup-$(date +%Y%m%d-%H%M%S)
+# 或
+mv ~/.claude/skills/fireworks-tech-graph ~/.claude/skills/fireworks-tech-graph.backup-$(date +%Y%m%d-%H%M%S)
+```
+
+### Codex
+
+```bash
+mkdir -p ~/.agents/skills
+git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.agents/skills/fireworks-tech-graph
+```
+
+Codex 从 `~/.agents/skills` 发现个人 Skill，并会读取仓库中的可选元数据 `agents/openai.yaml`。
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
 git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.claude/skills/fireworks-tech-graph
 ```
 
-或使用 `npx skills add`（子目录可能缺失）：
+Claude Code 从 `~/.claude/skills` 发现个人 Skill，会忽略只供 Codex 使用的 UI 元数据。
+
+### 同一台机器同时使用 Codex 和 Claude Code
+
+首次安装且 Claude Code 版本不低于 2.1.203 时，可以只保留一份仓库，再把两个发现路径链接到它。创建链接前，先把已有目标目录移开。
 
 ```bash
-npx skills add yizhiyanhua-ai/fireworks-tech-graph
+mkdir -p ~/.local/share/agent-skills ~/.agents/skills ~/.claude/skills
+git clone https://github.com/yizhiyanhua-ai/fireworks-tech-graph.git ~/.local/share/agent-skills/fireworks-tech-graph
+ln -s ~/.local/share/agent-skills/fireworks-tech-graph ~/.agents/skills/fireworks-tech-graph
+ln -s ~/.local/share/agent-skills/fireworks-tech-graph ~/.claude/skills/fireworks-tech-graph
 ```
 
-这个 Skill 的 `skills add` 安装源是 GitHub 仓库。npm 页面用于公开展示、版本分发和 README 浏览：
+这样 `SKILL.md`、参考资料、脚本、模板和后续更新在两端始终一致。npm 页面继续用于包元数据和版本分发：
 
 ```text
 https://www.npmjs.com/package/@yizhiyanhua-ai/fireworks-tech-graph
 ```
 
-不要把 npm 包名直接写进 `skills add`，因为 CLI 会把安装源解析为 GitHub 路径或本地路径。
-
 ## 更新
 
-```bash
-cd ~/.claude/skills/fireworks-tech-graph && git pull
-```
-
-或重新执行 CLI 安装器：
+更新实际安装的那一份仓库：
 
 ```bash
-npx skills add yizhiyanhua-ai/fireworks-tech-graph --force -g -y
+git -C ~/.agents/skills/fireworks-tech-graph pull
+# 或
+git -C ~/.claude/skills/fireworks-tech-graph pull
+# 或：共享仓库方式
+git -C ~/.local/share/agent-skills/fireworks-tech-graph pull
 ```
+
+首次安装后重启 Codex 和 Claude Code，让两端重新发现 Skill。后续修改 `SKILL.md` 会自动生效；如果改的是脚本或参考资料而运行时没有看到更新，重启对应运行时。
+
+以上 Shell 命令适用于 macOS、Linux、WSL 和 Git Bash。原生 Windows 请使用 `%USERPROFILE%\.agents\skills` 与 `%USERPROFILE%\.claude\skills` 对应路径。
 
 ---
 
 ## 安装依赖
 
-任选 **一种** PNG 渲染器（推荐 cairosvg）：
+仓库自带的校验/导出脚本需要 **cairosvg**（推荐）或 `rsvg-convert`。Puppeteer 是 `SKILL.md` 中的高级手动转换方案，不是脚本会自动使用的回退项。
 
 ```bash
 # 推荐：cairosvg（CSS 支持最好）
-pip install cairosvg
+python3 -m pip install cairosvg
 
 # 备选：rsvg-convert（系统包，可能丢失 CSS / <foreignObject>）
 brew install librsvg                   # macOS
 sudo apt install librsvg2-bin          # Ubuntu/Debian
 
-# 最高保真：puppeteer（真实 Chromium，体积较大）
-npm install puppeteer
-
-# 验证安装（任一即可）
+# 验证脚本支持的任一渲染器
 python3 -c "import cairosvg; print(cairosvg.__version__)"
 rsvg-convert --version
 ```
 
 | 渲染器 | 渲染质量 | 安装成本 | 适用场景 |
 |--------|---------|---------|---------|
-| **cairosvg** | ✅ 好 | 一行 `pip install` | 默认推荐，平衡最佳 |
+| **cairosvg** | ✅ 好 | 一行 `python3 -m pip install` | 默认推荐，平衡最佳 |
 | rsvg-convert | ⚠️ 一般 | 系统包 | 没有 Python 环境，简单图形够用 |
-| puppeteer | ✅✅ 最佳 | Node + 约 150MB Chromium | 浏览器生成的 SVG（D3、Mermaid）或像素级还原 |
+| puppeteer | ✅✅ 最佳 | Node + Chromium | D3、Mermaid 或像素级还原的手动浏览器渲染方案 |
 
-> 详细的对比、批量脚本与 puppeteer 完整脚本见 [SKILL.md → SVG → PNG Conversion](SKILL.md)。
+> 渲染器对比和 Puppeteer 用法见 [references/png-export.md](references/png-export.md)，浏览器导出脚本位于 `scripts/svg2png.js`。
 
 ---
 
@@ -341,7 +408,7 @@ generate diagram / draw diagram / create chart / visualize
 
 ---
 
-## 7 种风格
+## 8 种风格
 
 | # | 名称 | 背景色 | 字体 | 适用场景 |
 |---|------|--------|------|----------|
@@ -352,9 +419,10 @@ generate diagram / draw diagram / create chart / visualize
 | 5 | **玻璃态卡片风** | `#0d1117` 渐变 | Inter | 产品官网、演讲 Keynote |
 | 6 | **Claude 官方风格** | `#f8f6f3` | system-ui | Anthropic 风格图表，温暖专业美学 |
 | 7 | **OpenAI 官方风格** | `#ffffff` | system-ui | OpenAI 风格图表，简洁现代设计 |
+| 8 | **暗黑奢华风** *(AI 手绘)* | `#0a0a0a` | Georgia + system-ui | 高级文档、README Hero、技术演讲 |
 
-每种风格在 `references/` 目录下都有专属参考文件，包含精确的颜色 Token、SVG 模板和使用规范。
-生成器现在还会直接消费风格相关结构字段，例如 `containers`、语义化 `nodes[].kind`、`arrows[].flow` 以及显式端口锚点，以便更稳定地逼近样图级布局质量。
+每种风格在 `references/` 目录下都有专属参考文件，包含精确的颜色 Token 和 SVG Pattern。风格 1-7 由生成器驱动；风格 8 使用 AI 手绘构图和静态回归 fixture。
+对于风格 1-7，生成器会直接消费 `containers`、语义化 `nodes[].kind`、`arrows[].flow` 以及显式端口锚点，以便稳定复现样图级布局质量。
 
 几个很有用的增强字段：
 - `style_overrides`：在不复制整套 style 的前提下微调标题对齐或配色 token
@@ -385,6 +453,7 @@ generate diagram / draw diagram / create chart / visualize
 **品牌特定：**
 - **Anthropic/Claude 项目**：风格 6（Claude 官方风格）— 温暖奶油色背景，品牌感强且克制
 - **OpenAI 项目**：风格 7（OpenAI 官方风格）— 简洁白色，OpenAI 配色
+- **高级编辑感技术图**：风格 8（暗黑奢华风）— 深黑画布、香槟金层级和语义色桶
 
 ---
 
@@ -488,19 +557,26 @@ fireworks-tech-graph/
 │   ├── style-4-notion-clean.md   # 极简风格 — 白底，单色箭头
 │   ├── style-5-glassmorphism.md  # 玻璃态风格 — 深色渐变，磨砂卡片
 │   ├── style-6-claude-official.md # Claude 官方风格 — 温暖奶油色，Anthropic 品牌
-│   ├── style-7-openai.md        # OpenAI 官方风格 — 简洁白色，OpenAI 品牌配色
+│   ├── style-7-openai.md         # OpenAI 官方风格 — 简洁白色，OpenAI 品牌配色
+│   ├── style-8-dark-luxury.md    # 深黑画布、香槟金、AI 手绘布局
+│   ├── png-export.md             # 渲染器选择与手动导出方案
 │   └── icons.md                  # 40+ 产品图标 + 语义形状模板
 ├── agents/
-│   └── openai.yaml              # 兼容运行时使用的 Agent 元数据
+│   └── openai.yaml              # Codex 可选 UI 元数据
 ├── fixtures/
 │   ├── mem0-style1.json         # Style 1 回归样例
 │   ├── tool-call-style2.json    # Style 2 回归样例
+│   ├── dark-luxury-style8.svg   # Style 8 静态回归样例
 │   └── ...                      # 各风格样图级 fixture
 ├── scripts/
 │   ├── generate-diagram.sh       # SVG 校验与 PNG 导出
 │   ├── generate-from-template.py # 基于模板生成 SVG 起始文件
-│   ├── validate-svg.sh           # SVG 语法校验
+│   ├── svg2png.js                 # Puppeteer 高保真导出脚本
+│   ├── validate-svg.sh           # 校验与渲染检查入口
+│   ├── validate_svg.py           # XML、marker、transform 与路径碰撞检测
 │   └── test-all-styles.sh        # 批量测试所有风格
+├── tests/
+│   └── test_validate_svg.py      # Validator 回归测试
 ├── assets/
 │   └── samples/                  # 示例图 PNG
 ├── templates/
