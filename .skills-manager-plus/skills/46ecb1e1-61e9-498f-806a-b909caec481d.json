@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "46ecb1e1-61e9-498f-806a-b909caec481d",
+  "path": "beautify-github-readme",
+  "path_key": "beautify-github-readme",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/oil-oil/beautify-github-readme/tree/main/skills/beautify-github-readme",
+    "subpath": "skills/beautify-github-readme",
+    "branch": "main"
+  }
+}
