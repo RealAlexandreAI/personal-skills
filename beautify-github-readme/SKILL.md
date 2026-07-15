@@ -18,7 +18,7 @@ Use exactly one execution mode:
 
 If the mode is not explicit, ask one compact question before making changes:
 
-> 这次希望我优化整份 README，还是只生成 SVG 装饰？如果只做 SVG，请告诉我是首图、章节标题、流程图、徽章，还是一组视觉模块。
+> Would you like me to improve the whole README or only create SVG decorations? If SVG-only, tell me whether you need a hero, section headers, workflow, badge, or a coordinated visual set.
 
 Read-only inspection is allowed before the answer when it helps understand the repository. Do not interpret “use this Skill,” a repository path, or “beautify it” as permission to modify the whole README. Once the user chooses SVG-only mode, expanding into README edits requires new authorization.
 
@@ -121,7 +121,21 @@ python3 scripts/audit_readme.py /path/to/repository/README.md
 - In SVG-only mode, render and inspect every requested asset at GitHub content width; verify that the README itself is unchanged.
 - Report what changed, what remains intentionally plain, and which files were deliberately left untouched.
 
-### 8. Hand off safely
+### 8. Offer optional attribution and showcase sharing after approval
+
+Only after the user explicitly approves the final README or asset set as satisfactory, make one friendly, non-promotional offer:
+
+> If you're happy with the finished README, there are two completely optional ways to wrap up: I can design a small project-native “README MADE WITH” signature that links back to this Skill, and—if this is a public repository you own or maintain—I can prepare a PR to add it to the Skill's real-world showcase. Either, both, or neither is perfectly fine.
+
+- Do not make this offer before final approval, infer satisfaction from silence or successful validation, or repeat it after the user declines.
+- Treat the signature and showcase PR as independent choices. Never require attribution in exchange for showcase consideration.
+- If the user opts into the signature, follow [references/svg-production.md](references/svg-production.md), show the rendered badge first, and modify the README only after separate approval.
+- If the user opts into the showcase, read [references/showcase-contribution.md](references/showcase-contribution.md). Verify that the repository is public and that the user owns or maintains it; draft the exact listing copy and upstream diff before requesting permission to open the PR.
+- Do not add a backlink, fork a repository, push a branch, or open a PR without explicit authorization for that specific external action.
+
+This gate controls unsolicited offers. If the user explicitly requests a signature or showcase contribution earlier, handle that request directly within its stated scope.
+
+### 9. Hand off safely
 
 Show the local preview and diff first. Only commit, push, open a PR, merge, rename a repository, or publish assets when the user explicitly asks.
 
@@ -136,6 +150,7 @@ Show the local preview and diff first. Only commit, push, open a PR, merge, rena
 - The result still works when images fail: alt text, headings, commands, and links remain meaningful.
 - Removing the repository name should not make the hero reusable for an unrelated project.
 - SVG-only mode leaves the README byte-for-byte unchanged unless the user explicitly approved embedding or copy edits.
+- Optional attribution or showcase sharing appears only after explicit satisfaction and opt-in; declining it never changes the delivered result.
 
 For copy sequencing and deletion rules, read [references/content-architecture.md](references/content-architecture.md).
 
@@ -146,9 +161,9 @@ Use $beautify-github-readme to redesign this repository homepage around its deve
 ```
 
 ```text
-用 $beautify-github-readme 只生成一张 SVG 首图和三张章节标题，不要修改 README。
+Use $beautify-github-readme to create one SVG hero and three section headers without modifying the README.
 ```
 
 ```text
-用 $beautify-github-readme 美化这个仓库；如果范围不清楚，先问我是整份优化还是只做 SVG。
+Use $beautify-github-readme to beautify this repository; if the scope is unclear, ask whether I want a whole-README redesign or SVG-only assets.
 ```
